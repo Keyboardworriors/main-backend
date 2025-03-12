@@ -1,0 +1,28 @@
+# 가상 환경
+.venv/
+venv/
+
+# IDE 관련 파일
+.idea/
+.vscode/
+*.iml
+
+# Python 컴파일 파일 및 캐시 폴더
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 환경 설정 파일
+.env
+*.env
+.env.*
+
+# 로그 및 빌드 파일
+*.log
+*.cache
+.DS_Store
+Thumbs.db
+
+# Git 자체 파일
+.git/
