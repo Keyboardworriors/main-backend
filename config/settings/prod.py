@@ -13,11 +13,13 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
 # PostgreSQL 배포용 설정
-#TODO 배포 시 환경변수 수정 요망
-DATABASES["default"].update({
-    "NAME": os.getenv("DB_NAME", "prod_db"),
-    "USER": os.getenv("DB_USER", "prod_user"),
-    "PASSWORD": os.getenv("DB_PASSWORD", "prod_password"),
-    "HOST": os.getenv("DB_HOST", "prod_db_host"),
-    "PORT": os.getenv("DB_PORT", "5432"),
-})
+# TODO 배포 시 환경변수 수정 요망
+DATABASES["default"].update(
+    {
+        "NAME": os.getenv("DB_NAME", "prod_db"),
+        "USER": os.getenv("DB_USER", "prod_user"),
+        "PASSWORD": os.getenv("DB_PASSWORD", "prod_password"),
+        "HOST": os.getenv("DB_HOST", "prod_db_host"),
+        "PORT": os.getenv("DB_PORT", "5432"),
+    }
+)
