@@ -1,5 +1,3 @@
 app_name = "music"
 
-urlpatterns = [
-
-]
+urlpatterns = []
