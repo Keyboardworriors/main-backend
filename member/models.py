@@ -1,6 +1,10 @@
 import uuid
 
-from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
+)
 from django.contrib.postgres.fields.array import ArrayField
 from django.db import models
 
@@ -18,18 +22,18 @@ class MemberManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password=None, **extra_fields):
+    def create_superuser(self, email, nickname, password=None, **extra_fields):
         """
         슈퍼유저 생성 메서드
         """
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
 
-        return self.create_user(email, password, **extra_fields)
+        return self.create_user(email, nickname, password, **extra_fields)
 
 
 # 내부 회원 정보 관리 테이블
-class Member(AbstractBaseUser):
+class Member(AbstractBaseUser, PermissionsMixin):
     member_id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False, db_index=True
     )
@@ -39,13 +43,14 @@ class Member(AbstractBaseUser):
     favorite_genre = ArrayField(
         models.CharField(max_length=10), blank=True, default=list
     )
+    is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ["nickname"]
     objects = MemberManager()
 
     class Meta:
@@ -53,7 +58,7 @@ class Member(AbstractBaseUser):
         verbose_name_plural = "멤버 목록"
 
     def __str__(self):
-        return self.nickname
+        return self.email
 
     # admin page 용
     @classmethod
