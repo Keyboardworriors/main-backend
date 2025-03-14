@@ -26,3 +26,6 @@ Thumbs.db
 
 # Git 자체 파일
 .git/
+
+.config_secret/
+secrets.json

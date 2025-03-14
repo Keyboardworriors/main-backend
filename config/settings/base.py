@@ -10,17 +10,34 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import json
+import os
+from datetime import timedelta
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# env 파일 불러오기
+dotenv_path = BASE_DIR / ".env"
+if dotenv_path.exists():
+    load_dotenv(dotenv_path)
+
+# secrets 파일 불러오기
+secret_path = BASE_DIR / "secret.json"
+if secret_path.exists():
+    with open(secret_path) as f:
+        secrets = json.load(f)
+else:
+    secrets = {}
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-px57&b8-(+ujqkq^$v$+85zzwcib7cm)7&qriv@-#2d6k*&j_z"
+SECRET_KEY = secrets.get("SECRET_KEY","django-insecure-px57&b8-(+ujqkq^$v$+85zzwcib7cm)7&qriv@-#2d6k*&j_z") or secrets.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -33,6 +50,9 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     # own apps
     "member",
+    "diary",
+    "rest_framework",
+    "rest_framework_simplejwt",
     # django apps
     "django.contrib.admin",
     "django.contrib.auth",
@@ -78,8 +98,12 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
     }
 }
 
@@ -125,4 +149,10 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AUTH_USER_MODEL = "member.Member"
+# AUTH_USER_MODEL = "member.Member"
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "SIGNING_KEY": SECRET_KEY,  # 여기 추가
+}
