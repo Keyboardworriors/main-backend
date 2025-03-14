@@ -10,7 +10,6 @@ urlpatterns = [
     path("diarys/", include("diary.urls")),
     path("diarys/ai/", include("diary.ai_urls")),
     path("diarys/music/", include("diary.music_urls")),
-
 ]
 if settings.DEBUG:
     import debug_toolbar
