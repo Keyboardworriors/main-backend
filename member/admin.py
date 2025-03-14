@@ -7,15 +7,16 @@ from member.models import Member, SocialAccount
 @admin.register(Member)
 class MemberAdmin(admin.ModelAdmin):
     list_display = [
-        'member_id',
-        'email',
-        'nickname',
-        'introduce',
-        'favorite_genre',
-        'created_at',
-        'updated_at'
+        "member_id",
+        "email",
+        "nickname",
+        "introduce",
+        "favorite_genre",
+        "created_at",
+        "updated_at",
     ]
     search_fields = ["email", "nickname"]
+
 
 @admin.register(SocialAccount)
 class SocialAccountAdmin(admin.ModelAdmin):
@@ -25,6 +26,6 @@ class SocialAccountAdmin(admin.ModelAdmin):
         "provider",
         "provider_user_id",
         "email",
-        "created_at"
+        "created_at",
     ]
-    search_fields = ["email","provider"]
+    search_fields = ["email", "provider"]
