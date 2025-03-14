@@ -1,5 +1,5 @@
 [project]
-name = "main-backend"
+name = "config"
 version = "0.1.0"
 description = ""
 authors = [
@@ -26,3 +26,8 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.group.dev.dependencies]
 django-debug-toolbar = "^5.0.1"
 
+[tool.black]
+line-length = 80
+
+[tool.isort]
+profile = "black"
