@@ -6,10 +6,14 @@ from rest_framework.views import APIView, Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from member.models import SocialAccount
-from member.serializer import SocialAccountSerializer, MemberSerializer, \
-    ProfileSerializer
+from member.serializer import (
+    MemberSerializer,
+    ProfileSerializer,
+    SocialAccountSerializer,
+)
 
 User = get_user_model()
+
 
 class Logout(APIView):
     permission_classes = [IsAuthenticated]
@@ -30,13 +34,13 @@ class Logout(APIView):
 class MemberMypageView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self,request,member_id):
-        social_account = get_object_or_404(SocialAccount, member=member_id )
+    def get(self, request, member_id):
+        social_account = get_object_or_404(SocialAccount, member=member_id)
         serializer = SocialAccountSerializer(social_account)
         return Response(serializer.data, status=200)
 
     def patch(self, request, member_id):
-        member = get_object_or_404(User,member_id=member_id)
+        member = get_object_or_404(User, member_id=member_id)
         serializer = MemberSerializer(member, data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=400)
@@ -46,12 +50,11 @@ class MemberMypageView(APIView):
     def delete(self, request, member_id):
         member = get_object_or_404(User, member_id=member_id)
         member.delete()
-        return Response({"message":"Successfully deleted"}, status=200)
+        return Response({"message": "Successfully deleted"}, status=200)
+
 
 class MemberProfileView(APIView):
-    def get(self,request, member_id):
+    def get(self, request, member_id):
         member = get_object_or_404(SocialAccount, member=member_id)
         serializer = ProfileSerializer(member)
         return Response(serializer.data, status=200)
-
-

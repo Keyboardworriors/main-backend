@@ -1,5 +1,5 @@
-import string
 import random
+import string
 
 import requests
 from django.contrib.auth import login
@@ -159,6 +159,7 @@ class NaverLoginCallback(APIView):
         social_account.save()
         return member
 
+
 def generate_random_string(length=10):
     characters = string.ascii_letters + string.digits  # 영문 대소문자 + 숫자
-    return ''.join(random.choices(characters, k=length))
+    return "".join(random.choices(characters, k=length))

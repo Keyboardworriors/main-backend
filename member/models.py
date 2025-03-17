@@ -39,7 +39,9 @@ class Member(AbstractBaseUser, PermissionsMixin):
         primary_key=True, default=uuid.uuid4, editable=False, db_index=True
     )
     email = models.EmailField(unique=True, null=False, blank=False)
-    nickname = models.CharField(max_length=20, unique=True, null=False, blank=False)
+    nickname = models.CharField(
+        max_length=20, unique=True, null=False, blank=False
+    )
     introduce = models.CharField(max_length=50, blank=True)
     favorite_genre = ArrayField(
         models.CharField(max_length=10), blank=True, default=list
