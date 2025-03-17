@@ -27,7 +27,7 @@ else:
     print(f"파일이 존재하지 않음: {dotenv_path}")
 
 # secrets 파일 불러오기
-secret_path = BASE_DIR / "secret.json"
+secret_path = BASE_DIR / "secrets.json"
 if secret_path.exists():
     with open(secret_path) as f:
         secrets = json.load(f)
@@ -158,3 +158,12 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "SIGNING_KEY": SECRET_KEY,  # 여기 추가
 }
+
+NAVER_CLIENT_ID = secrets["naver"]["client_id"]
+NAVER_SECRET = secrets["naver"]["secret"]
+NAVER_REDIRECT_URL = secrets["naver"]["redirect_url"]
+
+
+KAKAO_CLIENT_ID = secrets["kakao"]["client_id"]
+KAKAO_SECRET = secrets["kakao"]["secret"]
+KAKAO_REDIRECT_URL = secrets["kakao"]["redirect_url"]
