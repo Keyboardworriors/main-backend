@@ -90,37 +90,40 @@ class DiaryAPIView(APIView):
             status=status.HTTP_200_OK,
         )
 
+
 # 일기 검색
 class DiarySearchAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request,):
+    def post(
+        self,
+        request,
+    ):
         q = request.data.get("q", "").strip()
         # 검색어 없으면
-        if not q :
-            return Response({
-                'error':'invalid_request',
-                'message': '검색어(q)를 입력해주세요.'
-            },status=status.HTTP_400_BAD_REQUEST,
+        if not q:
+            return Response(
+                {
+                    "error": "invalid_request",
+                    "message": "검색어(q)를 입력해주세요.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
         # 제목, 내용 에서 검색
         diaries = Diary.objects.filter(
-            Q(title__icontains=q) |
-            Q(content__icontains=q),
-            member=request.user
+            Q(title__icontains=q) | Q(content__icontains=q), member=request.user
         ).order_by("-created_at")
 
         # 검색 데이터 없을 때
         if not diaries.exists():
-            return Response({
-                'error': "not_found",
-                'message':"검색 결과가 없습니다."
-            },status=status.HTTP_200_OK)
+            return Response(
+                {"error": "not_found", "message": "검색 결과가 없습니다."},
+                status=status.HTTP_200_OK,
+            )
 
         serializer = DiarySerializer(diaries, many=True)
 
         return Response(
-            {"message": '일기 검색 성공',
-                'data' : serializer.data
-            },status=status.HTTP_200_OK
+            {"message": "일기 검색 성공", "data": serializer.data},
+            status=status.HTTP_200_OK,
         )
