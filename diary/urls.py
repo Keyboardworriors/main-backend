@@ -1,3 +1,12 @@
-app_name = "diary"
+from django.urls import path
 
-urlpatterns = []
+from diary.views import DiaryAPIView
+
+app_name = "diary"
+urlpatterns = [
+    path("api/diary", DiaryAPIView.as_view(), name="diary_main"),
+    path("api/diary/<diary_id:int>", DiaryAPIView.as_view(), name="diary_detail"),
+]
+
+
+
