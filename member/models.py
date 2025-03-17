@@ -7,6 +7,7 @@ from django.contrib.auth.models import (
 )
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models.manager import Manager
 
 
 class MemberManager(BaseUserManager):
@@ -38,7 +39,7 @@ class Member(AbstractBaseUser, PermissionsMixin):
         primary_key=True, default=uuid.uuid4, editable=False, db_index=True
     )
     email = models.EmailField(unique=True, null=False, blank=False)
-    nickname = models.CharField(max_length=20, unique=True, blank=False)
+    nickname = models.CharField(max_length=20, unique=True, null=False, blank=False)
     introduce = models.CharField(max_length=50, blank=True)
     favorite_genre = ArrayField(
         models.CharField(max_length=10), blank=True, default=list
@@ -79,6 +80,8 @@ class SocialAccount(models.Model):
     email = models.EmailField()
     profile_image = models.URLField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = Manager()
 
     class Meta:
         verbose_name = "소셜 계정"

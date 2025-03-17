@@ -1,3 +1,6 @@
+import string
+import random
+
 import requests
 from django.contrib.auth import login
 from rest_framework.views import APIView, Response
@@ -79,12 +82,7 @@ class KakaoLoginCallback(APIView):
     def get_or_create_member(self, social_account, member_info):
         if social_account.member:
             return social_account.member
-        nickname = (
-            member_info.get("kakao_account", {})
-            .get("profile", {})
-            .get("nickname", "")
-        )
-
+        nickname = generate_random_string(10)
         member = Member.objects.create_user(
             email=social_account.email, nickname=nickname
         )
@@ -152,7 +150,7 @@ class NaverLoginCallback(APIView):
     def get_or_create_member(self, social_account, member_info):
         if social_account.member:
             return social_account.member
-        nickname = member_info["response"]["nickname"]
+        nickname = generate_random_string(10)
 
         member = Member.objects.create_user(
             email=social_account.email, nickname=nickname
@@ -160,3 +158,7 @@ class NaverLoginCallback(APIView):
         social_account.member = member
         social_account.save()
         return member
+
+def generate_random_string(length=10):
+    characters = string.ascii_letters + string.digits  # 영문 대소문자 + 숫자
+    return ''.join(random.choices(characters, k=length))

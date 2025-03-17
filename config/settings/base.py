@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "diary",
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     # django apps
     "django.contrib.admin",
     "django.contrib.auth",
@@ -156,7 +157,10 @@ AUTH_USER_MODEL = "member.Member"
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-    "SIGNING_KEY": SECRET_KEY,  # 여기 추가
+    "SIGNING_KEY": SECRET_KEY,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "ROTATE_REFRESH_TOKENS": True,
+    "ALGORITHM": "HS256",
 }
 
 NAVER_CLIENT_ID = secrets["naver"]["client_id"]
