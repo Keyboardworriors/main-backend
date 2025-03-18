@@ -11,7 +11,7 @@ from diary.models import Diary
 from diary.serializers import DiarySerializer
 
 
-class DiaryList(APIView):
+class DiaryListView(APIView):
     permission_classes = [IsAuthenticated]
 
     # 메인페이지에서의 일기 조회
@@ -31,7 +31,7 @@ class DiaryList(APIView):
         )
 
 
-class DiaryDetail(APIView):
+class DiaryDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     # 특정 일기 조회
@@ -73,7 +73,7 @@ class DiaryDetail(APIView):
         )
 
 
-class DiaryCreateAPIView(APIView):
+class DiaryCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     # 오늘 날짜 일기 작성
@@ -95,7 +95,7 @@ class DiaryCreateAPIView(APIView):
         )
 
 
-class DiaryCustomDateCreateAPIView(APIView):
+class DiaryCustomDateCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     # 작성일과 저장되는 일기날짜가 다를때
@@ -166,7 +166,7 @@ class DiaryCustomDateCreateAPIView(APIView):
 
 
 # 일기 검색
-class DiarySearchAPIView(APIView):
+class DiarySearchView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(
@@ -202,6 +202,3 @@ class DiarySearchAPIView(APIView):
             {"message": "일기 검색 성공", "data": serializer.data},
             status=status.HTTP_200_OK,
         )
-
-
-#
