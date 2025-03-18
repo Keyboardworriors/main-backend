@@ -9,6 +9,7 @@ class DiarySerializer(serializers.ModelSerializer):
         fields = [
             "diary_id",
             "moods",
+            "diary_title",
             "content",
             "rec_music",
             "created_at",
