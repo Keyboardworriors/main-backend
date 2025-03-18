@@ -20,7 +20,7 @@ class Diary(models.Model):
     )
     diary_title = models.CharField(max_length=100)
     content = models.TextField()
-    moods = models.JSONField()
+    moods = models.JSONField(default=list)
     rec_music = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
