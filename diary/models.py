@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 
 # 음악정보 저장 테이블
@@ -20,7 +21,7 @@ class Diary(models.Model):
     )
     diary_title = models.CharField(max_length=100)
     content = models.TextField()
-    moods = models.JSONField(default=list)
+    moods = ArrayField(models.CharField(max_length=20), default=list)
     rec_music = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
