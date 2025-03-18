@@ -58,15 +58,7 @@ class DiaryDetail(APIView):
     # 특정 일기 삭제
     def delete(self, request, diary_id=None):
         diary = get_object_or_404(Diary, id=diary_id, member=request.user)
-        if not diary_id:
-            return Response(
-                {
-                    "error": "invalid_request",
-                    "message": "삭제할 diary_id가 필요합니다.",
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        elif diary.member != request.user:
+        if diary.member != request.user:
             return Response(
                 {
                     "error": "forbidden",
@@ -84,7 +76,7 @@ class DiaryDetail(APIView):
 class DiaryCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    # 일기 작성
+    # 오늘 날짜 일기 작성
     def post(self, request):
         serializer = DiarySerializer(data=request.data)
         if serializer.is_valid():
@@ -96,6 +88,11 @@ class DiaryCreateAPIView(APIView):
                 },
                 status=status.HTTP_201_CREATED,
             )
+        # 유효성 검증 실패 시 예외 처리 추가
+        return Response(
+            {"error": "invalid_request", "message": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 class DiaryCustomDateCreateAPIView(APIView):
@@ -141,7 +138,7 @@ class DiaryCustomDateCreateAPIView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            # 하루에 한개 작성체크
+            # 하루에 한개 작성체크(중복 방지)
             if Diary.objects.filter(
                 member=request.user, created_at__date=created_date
             ).exists():
@@ -149,7 +146,8 @@ class DiaryCustomDateCreateAPIView(APIView):
                     {
                         "error": "already_exists",
                         "message": "해당 날짜에 이미 일기가 존재합니다.",
-                    }
+                    },
+                    status=status.HTTP_409_CONFLICT,
                 )
 
             # 저장
