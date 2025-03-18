@@ -5,8 +5,9 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
-from django.contrib.postgres.fields.array import ArrayField
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models.manager import Manager
 
 
 class MemberManager(BaseUserManager):
@@ -38,7 +39,9 @@ class Member(AbstractBaseUser, PermissionsMixin):
         primary_key=True, default=uuid.uuid4, editable=False, db_index=True
     )
     email = models.EmailField(unique=True, null=False, blank=False)
-    nickname = models.CharField(max_length=20, unique=True, blank=False)
+    nickname = models.CharField(
+        max_length=20, unique=True, null=False, blank=False
+    )
     introduce = models.CharField(max_length=50, blank=True)
     favorite_genre = ArrayField(
         models.CharField(max_length=10), blank=True, default=list
@@ -71,16 +74,24 @@ class SocialAccount(models.Model):
     social_account_id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False, db_index=True
     )
-    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    member = models.ForeignKey(
+        Member, on_delete=models.CASCADE, related_name="social_accounts"
+    )
     provider = models.CharField(max_length=20)
-    provider_user_id = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
+    provider_user_id = models.CharField(max_length=255, unique=True)
+    email = models.EmailField()
     profile_image = models.URLField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = Manager()
 
     class Meta:
         verbose_name = "소셜 계정"
         verbose_name_plural = "소셜 계정 목록"
+        unique_together = (
+            "provider",
+            "email",
+        )  # 같은 provider에서 같은 이메일이 중복되면 안됨
 
     def __str__(self):
-        return self.email
+        return f"{self.provider} - {self.email}"

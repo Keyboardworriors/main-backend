@@ -6,10 +6,11 @@ from config import settings
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("members/", include("member.urls")),
-    path("diarys/", include("diary.urls")),
-    path("diarys/ai/", include("diary.ai_urls")),
-    path("diarys/music/", include("diary.music_urls")),
+    path("api/members/", include("member.urls")),
+    path("oauth/", include("member.oauth_urls")),
+    path("api/diary/", include("diary.urls")),
+    path("api/diary/ai/", include("diary.ai_urls")),
+    path("api/diary/music/", include("diary.music_urls")),
 ]
 if settings.DEBUG:
     import debug_toolbar
