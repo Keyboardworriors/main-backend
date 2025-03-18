@@ -20,7 +20,7 @@ class DiaryList(APIView):
         diaries = Diary.objects.filter(member=request.user).values_list(
             "created_at", flat=True
         )
-        diary_dates = [diary.date().strftime("%Y-%m-%d") for diary in diaries]
+        diary_dates = [diary.strftime("%Y-%m-%d") for diary in diaries if diary]
 
         return Response(
             {
