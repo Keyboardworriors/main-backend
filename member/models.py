@@ -75,7 +75,10 @@ class SocialAccount(models.Model):
         primary_key=True, default=uuid.uuid4, editable=False, db_index=True
     )
     member = models.ForeignKey(
-        Member, on_delete=models.CASCADE, related_name="social_accounts"
+        Member,
+        on_delete=models.CASCADE,
+        related_name="social_accounts",
+        null=True,
     )
     provider = models.CharField(max_length=20)
     provider_user_id = models.CharField(max_length=255, unique=True)

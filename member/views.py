@@ -42,10 +42,12 @@ class MemberMypageView(APIView):
     def patch(self, request, member_id):
         member = get_object_or_404(User, member_id=member_id)
         serializer = MemberSerializer(member, data=request.data, partial=True)
+
         if not serializer.is_valid():
             return Response(serializer.errors, status=400)
+        print(serializer.validated_data)
         serializer.save()
-        return Response(serializer.validated_data, status=200)
+        return Response(serializer.data, status=200)
 
     def delete(self, request, member_id):
         member = get_object_or_404(User, member_id=member_id)

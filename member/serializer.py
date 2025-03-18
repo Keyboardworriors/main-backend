@@ -26,26 +26,42 @@ class MemberSerializer(serializers.ModelSerializer):
         fields = ["email", "nickname", "introduce", "favorite_genre"]
 
     def validate_nickname(self, value):
-        if Member.objects.filter(nickname=value).exists():
+        request_member = self.instance
+        if (
+            Member.objects.filter(nickname=value)
+            .exclude(member_id=request_member.member_id)
+            .exists()
+        ):
             raise serializers.ValidationError("중복된 닉네임입니다.")
 
         if len(value) > 10:
             raise serializers.ValidationError(
                 "닉네임은 10자를 초과할 수 없습니다."
             )
+        return value
 
     def validate_introduce(self, value):
         if len(value) > 25:
             raise serializers.ValidationError(
                 "한 줄 소개는 25자 이내로 적어주세요"
             )
+        return value
 
     def update(self, instance, validated_data):
-        instance.nickname = validated_data.get("nickname", instance.nickname)
+        nickname = validated_data.get("nickname")
+        if nickname is not None and nickname != "":
+            instance.nickname = nickname
+
         instance.favorite_genre = validated_data.get(
             "favorite_genre", instance.favorite_genre
         )
-        instance.introduce = validated_data.get("introduce", instance.introduce)
+
+        introduce = validated_data.get("introduce")
+        if introduce is not None and introduce != "":
+            instance.introduce = introduce
+
+        instance.save()
+        return instance
 
 
 class ProfileSerializer(serializers.ModelSerializer):

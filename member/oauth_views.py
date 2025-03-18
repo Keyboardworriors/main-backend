@@ -3,6 +3,7 @@ import string
 
 import requests
 from django.contrib.auth import login
+from django.forms.models import model_to_dict
 from rest_framework.views import APIView, Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -25,7 +26,7 @@ class KakaoLoginCallback(APIView):
         member_info = self.get_member_info_kakao(access_token)
         social_account = self.get_or_create_social_account(member_info)
         member = self.get_or_create_member(social_account, member_info)
-
+        member_dict = model_to_dict(member)
         login(request, member)
         refresh = RefreshToken.for_user(member)
         return Response(
@@ -33,7 +34,7 @@ class KakaoLoginCallback(APIView):
                 "message": "Successfully logined",
                 "access_token": str(refresh.access_token),
                 "refresh_token": str(refresh),
-                "user": member,
+                "user": member_dict,
             }
         )
 
@@ -103,12 +104,13 @@ class NaverLoginCallback(APIView):
         member = self.get_or_create_member(social_account, member_info)
         login(request, member)
         refresh = RefreshToken.for_user(member)
+        member_dict = model_to_dict(member)
         return Response(
             {
                 "message": "Successfully logined",
                 "access_token": str(refresh.access_token),
                 "refresh_token": str(refresh),
-                "user": member,
+                "user": member_dict,
             }
         )
 
