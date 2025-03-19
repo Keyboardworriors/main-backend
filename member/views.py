@@ -19,33 +19,34 @@ User = get_user_model()
 
 class MemberRegister(APIView):
     def get(self, request):
-        social_account = request.session.get("social_account")
-        try:
-            data = {
-                "email": social_account["email"],
-                "profile_image": social_account["profile_image"],
-            }
-            return Response(data, status=200)
-        except Exception as e:
-            return Response({"error": f"{e}"}, status=400)
-        finally:
-            request.session.pop("social_account_id", None)
+        return Response(status=200)
 
     def post(self, request):
         nickname = request.data.get("nickname", None)
         introduce = request.data.get("introduce", None)
         favorite_genre = request.data.get("favorite_genre", None)
-        if not isinstance(favorite_genre, list):
+
+        if favorite_genre and not isinstance(favorite_genre, list):
             favorite_genre = [favorite_genre]
         email = request.data.get("email")
         social_account = SocialAccount.objects.filter(email=email).first()
+        if not social_account:
+            return Response({"error": "소셜 계정을 찾을 수 없습니다"}, 400)
         member = self.create_member(
             social_account,
             nickname=nickname,
             introduce=introduce,
             favorite_genre=favorite_genre,
         )
-        member_dict = model_to_dict(member)
+        if isinstance(member, dict):  # serializer.errors가 반환된 경우
+            return Response({"errors": member}, status=400)
+        social_account.member = member
+        social_account.is_registered = True
+        social_account.save()
+        member_data = {
+            "member_id": str(member.member_id),
+            "email": member.email,
+        }
         login(request, member)
         refresh = RefreshToken.for_user(member)
         return Response(
@@ -53,7 +54,7 @@ class MemberRegister(APIView):
                 "message": "Successfully logined",
                 "access_token": str(refresh.access_token),
                 "refresh_token": str(refresh),
-                "user": member_dict,
+                "user": member_data,
             }
         )
 
@@ -69,23 +70,33 @@ class MemberRegister(APIView):
         serializer = MemberSerializer(data=data)
         if serializer.is_valid():
             return serializer.save()
-        raise serializers.ValidationError(serializer.errors)
+        return serializer.errors
 
 
 class Login(APIView):
-    def get(self, request):
-        social_account = request.session.get("social_account")
-        member = User.objects.filter(email=social_account["email"]).first()
-        member_dict = model_to_dict(member)
-        login(request, member)
+    def post(self, request):
+        email = request.data.get("email")
+        social_account = SocialAccount.objects.filter(email=email).first()
+        if not social_account.member:
+            return Response({"error": "회원가입이 필요합니다"}, status=404)
+        member = social_account.member
+        member_data = {
+            "member_id": str(member.member_id),
+            "email": member.email,
+            "profile_image": social_account.profile_image,
+        }
+
+        login(request, member)  # backend 명시적으로 지정 필요 가능성 있음
         refresh = RefreshToken.for_user(member)
+
         return Response(
             {
-                "message": "Successfully logined",
+                "message": "Successfully logged in",
                 "access_token": str(refresh.access_token),
                 "refresh_token": str(refresh),
-                "user": member_dict,
-            }
+                "user": member_data,
+            },
+            status=200,
         )
 
 
@@ -96,10 +107,10 @@ class Logout(APIView):
         try:
             refresh_token = request.data.get("refresh_token")
             if not refresh_token:
-                return Response({"msg": "Invalid Token"}, status=400)
+                return Response({"message": "Invalid Token"}, status=400)
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response({"msg": "Successfully Logout"}, status=200)
+            return Response({"message": "Successfully Logout"}, status=200)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 

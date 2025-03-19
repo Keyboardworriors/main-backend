@@ -61,7 +61,7 @@ class Member(AbstractBaseUser, PermissionsMixin):
     favorite_genre = ArrayField(
         models.CharField(max_length=10), blank=True, default=list, null=True
     )
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -99,6 +99,7 @@ class SocialAccount(models.Model):
     provider_user_id = models.CharField(max_length=255, unique=True)
     email = models.EmailField()
     profile_image = models.URLField(blank=True)
+    is_registered = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = Manager()

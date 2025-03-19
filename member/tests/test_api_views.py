@@ -27,22 +27,12 @@ class MemberViewsTest(TestCase):
             email="test@example.com",
             member=self.user,
             profile_image="http://example.com/image.jpg",
+            is_registered=True,
         )
 
     def test_member_register_get(self):
-        session = self.client.session
-        session["social_account"] = {
-            "email": "new@example.com",
-            "profile_image": "http://example.com/new_image.jpg",
-        }
-        session.save()
-
         response = self.client.get(reverse("member:register"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["email"], "new@example.com")
-        self.assertEqual(
-            response.data["profile_image"], "http://example.com/new_image.jpg"
-        )
 
     def test_member_register_post(self):
         data = {
@@ -61,21 +51,15 @@ class MemberViewsTest(TestCase):
         self.assertIn("refresh_token", response.data)
 
     def test_login(self):
-        session = self.client.session
-        session["social_account"] = {"email": "test@example.com"}
-        session.save()
-
-        response = self.client.get(reverse("member:login"))
+        data = {"email": "test@example.com"}
+        response = self.client.post(reverse("member:login"), data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("access_token", response.data)
 
     @patch("rest_framework_simplejwt.tokens.RefreshToken.blacklist")
     def test_logout(self, mock_blacklist):
         self.client.force_authenticate(user=self.user)
-
-        # 유효한 refresh token 생성
         refresh = RefreshToken.for_user(self.user)
-
         response = self.client.post(
             reverse("member:logout"), {"refresh_token": str(refresh)}
         )
@@ -92,17 +76,14 @@ class MemberViewsTest(TestCase):
 
     def test_member_mypage_patch(self):
         self.client.force_authenticate(user=self.user)
-        data = {
-            "nickname": "updated_nick",
-            "favorite_genre": ["Drama"],
-            "email": self.user.email,  # ReadOnlyField지만 업데이트시 필요
-        }
+        data = {"nickname": "updated_nick", "favorite_genre": ["Drama"]}
         response = self.client.patch(
             reverse("member:mypage", kwargs={"member_id": self.user.member_id}),
             data,
-            format="json",  # JSON 형식 명시적 지정
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["nickname"], "updated_nick")
 
     def test_member_mypage_delete(self):
         self.client.force_authenticate(user=self.user)

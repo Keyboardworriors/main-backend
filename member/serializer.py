@@ -21,16 +21,11 @@ class SocialAccountSerializer(serializers.ModelSerializer):
 
 
 class MemberSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(required=True)
+    email = serializers.EmailField()
 
     class Meta:
         model = Member
         fields = ["email", "nickname", "introduce", "favorite_genre"]
-
-    def validate(self, attrs):
-        if "email" not in attrs:
-            raise serializers.ValidationError("Email is required")
-        return attrs
 
     def validate_nickname(self, value):
         if (
