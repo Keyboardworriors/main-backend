@@ -1,3 +1,5 @@
+import json
+
 from rest_framework import serializers
 
 from member.models import Member, SocialAccount
@@ -19,25 +21,25 @@ class SocialAccountSerializer(serializers.ModelSerializer):
 
 
 class MemberSerializer(serializers.ModelSerializer):
-    email = serializers.ReadOnlyField()
+    email = serializers.EmailField(required=True)
 
     class Meta:
         model = Member
         fields = ["email", "nickname", "introduce", "favorite_genre"]
 
+    def validate(self, attrs):
+        if 'email' not in attrs:
+            raise serializers.ValidationError("Email is required")
+        return attrs
+
     def validate_nickname(self, value):
-        request_member = self.instance
-        if (
-            Member.objects.filter(nickname=value)
-            .exclude(member_id=request_member.member_id)
-            .exists()
-        ):
+        if self.instance and Member.objects.filter(nickname=value).exclude(
+                pk=self.instance.pk).exists():
             raise serializers.ValidationError("중복된 닉네임입니다.")
 
-        if len(value) > 10:
+        if len(value.encode("utf-8")) > 30:
             raise serializers.ValidationError(
-                "닉네임은 10자를 초과할 수 없습니다."
-            )
+                "닉네임은 한글 기준으로 최대 15자까지 입력할 수 있습니다.")
         return value
 
     def validate_introduce(self, value):
@@ -47,14 +49,24 @@ class MemberSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def validate_favorite_genre(self, value):
+        if isinstance(value, str):
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError:
+                raise serializers.ValidationError("올바른 형식이 아닙니다.")
+        elif not isinstance(value, list):
+            value = [value]
+        return value or []
+
     def update(self, instance, validated_data):
         nickname = validated_data.get("nickname")
         if nickname is not None and nickname != "":
             instance.nickname = nickname
 
-        instance.favorite_genre = validated_data.get(
+        instance.favorite_genre = self.validate_favorite_genre(validated_data.get(
             "favorite_genre", instance.favorite_genre
-        )
+        ))
 
         introduce = validated_data.get("introduce")
         if introduce is not None and introduce != "":
@@ -62,6 +74,18 @@ class MemberSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+    def create(self, validated_data):
+        validated_data["favorite_genre"] = self.validate_favorite_genre(
+            validated_data.get("favorite_genre", [])
+        )
+        return Member.objects.create_user(
+            email=validated_data['email'],  # 명시적으로 email 전달
+            nickname=validated_data.get('nickname', ''),
+            introduce=validated_data.get('introduce', ''),
+            favorite_genre=validated_data.get('favorite_genre', [])
+        )
+
 
 
 class ProfileSerializer(serializers.ModelSerializer):

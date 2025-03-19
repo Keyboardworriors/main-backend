@@ -1,12 +1,8 @@
-import random
-import string
-
 import requests
-from django.contrib.auth import login
 from django.forms.models import model_to_dict
 from rest_framework.views import APIView, Response
-from rest_framework_simplejwt.tokens import RefreshToken
-
+from django.urls import reverse
+from django.http import HttpResponseRedirect
 from config import settings
 from config.settings import (
     KAKAO_CLIENT_ID,
@@ -21,22 +17,24 @@ class KakaoLoginCallback(APIView):
         code = request.GET.get("code")
         if not code:
             return Response({"error": "Code is missing"}, status=400)
-
         access_token = self.get_access_kakao_token(code)
         member_info = self.get_member_info_kakao(access_token)
         social_account = self.get_or_create_social_account(member_info)
-        member = self.get_or_create_member(social_account, member_info)
-        member_dict = model_to_dict(member)
-        login(request, member)
-        refresh = RefreshToken.for_user(member)
-        return Response(
-            {
-                "message": "Successfully logined",
-                "access_token": str(refresh.access_token),
-                "refresh_token": str(refresh),
-                "user": member_dict,
-            }
-        )
+        social_account_data = {
+            "provider": social_account.provider,
+            "provider_user_id": social_account.provider_user_id,
+            "email": social_account.email,
+            "profile_image": social_account.profile_image,
+            "member_id": str(
+                social_account.member.id) if social_account.member else None
+            # UUID -> 문자열
+        }
+
+        # 세션에 저장
+        request.session["social_account"] = social_account_data
+        if not Member.objects.filter(email=social_account.email).exists():
+            return HttpResponseRedirect(reverse("member:register"))
+        return HttpResponseRedirect(reverse("member:login"))
 
     # 카카오에서 access_token 받아오기
     def get_access_kakao_token(self, code):
@@ -62,7 +60,6 @@ class KakaoLoginCallback(APIView):
         response = requests.get(url, headers=headers)
         return response.json()
 
-    # 소셜 어카운트 조회 혹은 생성
     def get_or_create_social_account(self, member_info):
         kakao_account = member_info.get("kakao_account", {})
         email = kakao_account.get("email")
@@ -79,18 +76,6 @@ class KakaoLoginCallback(APIView):
 
         return social_account
 
-    # 멤버 조회 또는 생성
-    def get_or_create_member(self, social_account, member_info):
-        if social_account.member:
-            return social_account.member
-        nickname = generate_random_string(10)
-        member = Member.objects.create_user(
-            email=social_account.email, nickname=nickname
-        )
-        social_account.member = member
-        social_account.save()
-        return member
-
 
 class NaverLoginCallback(APIView):
 
@@ -101,18 +86,11 @@ class NaverLoginCallback(APIView):
         access_token = self.get_access_naver_token(code)
         member_info = self.get_member_info_naver(access_token)
         social_account = self.get_or_create_social_account(member_info)
-        member = self.get_or_create_member(social_account, member_info)
-        login(request, member)
-        refresh = RefreshToken.for_user(member)
-        member_dict = model_to_dict(member)
-        return Response(
-            {
-                "message": "Successfully logined",
-                "access_token": str(refresh.access_token),
-                "refresh_token": str(refresh),
-                "user": member_dict,
-            }
-        )
+
+        request.session["social_account"] = model_to_dict(social_account)
+        if not Member.objects.filter(email=social_account.email).exists():
+            return HttpResponseRedirect(reverse("member:register"))
+        return HttpResponseRedirect(reverse("member:login"))
 
     def get_access_naver_token(self, code):
         """네이버 OAuth 토큰 요청 (쿼리 파라미터 사용)"""
@@ -148,20 +126,3 @@ class NaverLoginCallback(APIView):
 
         return social_account
 
-    # 멤버 조회 또는 생성
-    def get_or_create_member(self, social_account, member_info):
-        if social_account.member:
-            return social_account.member
-        nickname = generate_random_string(10)
-
-        member = Member.objects.create_user(
-            email=social_account.email, nickname=nickname
-        )
-        social_account.member = member
-        social_account.save()
-        return member
-
-
-def generate_random_string(length=10):
-    characters = string.ascii_letters + string.digits  # 영문 대소문자 + 숫자
-    return "".join(random.choices(characters, k=length))
