@@ -5,7 +5,7 @@ from django.db import models
 # 음악정보 저장 테이블
 class Music(models.Model):
     music_id = models.AutoField(primary_key=True)
-    videoId = models.CharField(max_length=50)# youtube 고유 video id
+    videoId = models.CharField(max_length=50)  # youtube 고유 video id
     title = models.CharField(max_length=100)
     artist = models.CharField(max_length=100)
     thumbnail = models.URLField()
