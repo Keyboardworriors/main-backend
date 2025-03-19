@@ -28,18 +28,23 @@ class MemberSerializer(serializers.ModelSerializer):
         fields = ["email", "nickname", "introduce", "favorite_genre"]
 
     def validate(self, attrs):
-        if 'email' not in attrs:
+        if "email" not in attrs:
             raise serializers.ValidationError("Email is required")
         return attrs
 
     def validate_nickname(self, value):
-        if self.instance and Member.objects.filter(nickname=value).exclude(
-                pk=self.instance.pk).exists():
+        if (
+            self.instance
+            and Member.objects.filter(nickname=value)
+            .exclude(pk=self.instance.pk)
+            .exists()
+        ):
             raise serializers.ValidationError("중복된 닉네임입니다.")
 
         if len(value.encode("utf-8")) > 30:
             raise serializers.ValidationError(
-                "닉네임은 한글 기준으로 최대 15자까지 입력할 수 있습니다.")
+                "닉네임은 한글 기준으로 최대 15자까지 입력할 수 있습니다."
+            )
         return value
 
     def validate_introduce(self, value):
@@ -64,9 +69,9 @@ class MemberSerializer(serializers.ModelSerializer):
         if nickname is not None and nickname != "":
             instance.nickname = nickname
 
-        instance.favorite_genre = self.validate_favorite_genre(validated_data.get(
-            "favorite_genre", instance.favorite_genre
-        ))
+        instance.favorite_genre = self.validate_favorite_genre(
+            validated_data.get("favorite_genre", instance.favorite_genre)
+        )
 
         introduce = validated_data.get("introduce")
         if introduce is not None and introduce != "":
@@ -80,12 +85,11 @@ class MemberSerializer(serializers.ModelSerializer):
             validated_data.get("favorite_genre", [])
         )
         return Member.objects.create_user(
-            email=validated_data['email'],  # 명시적으로 email 전달
-            nickname=validated_data.get('nickname', ''),
-            introduce=validated_data.get('introduce', ''),
-            favorite_genre=validated_data.get('favorite_genre', [])
+            email=validated_data["email"],  # 명시적으로 email 전달
+            nickname=validated_data.get("nickname", ""),
+            introduce=validated_data.get("introduce", ""),
+            favorite_genre=validated_data.get("favorite_genre", []),
         )
-
 
 
 class ProfileSerializer(serializers.ModelSerializer):

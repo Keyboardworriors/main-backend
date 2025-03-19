@@ -1,8 +1,9 @@
 import requests
 from django.forms.models import model_to_dict
-from rest_framework.views import APIView, Response
-from django.urls import reverse
 from django.http import HttpResponseRedirect
+from django.urls import reverse
+from rest_framework.views import APIView, Response
+
 from config import settings
 from config.settings import (
     KAKAO_CLIENT_ID,
@@ -25,8 +26,9 @@ class KakaoLoginCallback(APIView):
             "provider_user_id": social_account.provider_user_id,
             "email": social_account.email,
             "profile_image": social_account.profile_image,
-            "member_id": str(
-                social_account.member.id) if social_account.member else None
+            "member_id": (
+                str(social_account.member.id) if social_account.member else None
+            ),
             # UUID -> 문자열
         }
 
@@ -125,4 +127,3 @@ class NaverLoginCallback(APIView):
         )
 
         return social_account
-

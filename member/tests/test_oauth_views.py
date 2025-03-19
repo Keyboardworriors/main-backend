@@ -1,8 +1,10 @@
 # tests/test_oauth.py
+from unittest.mock import Mock, patch
+
 from django.test import TestCase
 from django.urls import reverse
-from unittest.mock import patch, Mock
-from member.models import SocialAccount, Member
+
+from member.models import Member, SocialAccount
 
 
 # 기본 테스트 설정
@@ -23,8 +25,8 @@ class KakaoLoginCallbackTest(OAuthBaseTest):
                 "email": "test@kakao.com",
                 "profile": {
                     "profile_image_url": "http://kakao.com/profile.jpg"
-                }
-            }
+                },
+            },
         }
 
     # Case 1: 코드 누락
@@ -34,19 +36,18 @@ class KakaoLoginCallbackTest(OAuthBaseTest):
         self.assertJSONEqual(response.content, {"error": "Code is missing"})
 
     # Case 2: 유효한 코드 (신규 사용자)
-    @patch('member.views.requests.get')
-    @patch('member.views.requests.post')
+    @patch("member.views.requests.get")
+    @patch("member.views.requests.post")
     def test_valid_code_new_user(self, mock_post, mock_get):
         # Access Token 요청 모킹
         mock_post.return_value = Mock(
             status_code=200,
-            json=Mock(return_value={"access_token": "mock_token"})
+            json=Mock(return_value={"access_token": "mock_token"}),
         )
 
         # 사용자 정보 요청 모킹
         mock_get.return_value = Mock(
-            status_code=200,
-            json=Mock(return_value=self.mock_user_data)
+            status_code=200, json=Mock(return_value=self.mock_user_data)
         )
 
         response = self.client.get(self.url, {"code": "valid_code"})
@@ -58,24 +59,23 @@ class KakaoLoginCallbackTest(OAuthBaseTest):
         self.assertEqual(social_account.provider_user_id, "123456789")
 
     # Case 3: 기존 사용자
-    @patch('member.views.requests.get')
-    @patch('member.views.requests.post')
+    @patch("member.views.requests.get")
+    @patch("member.views.requests.post")
     def test_valid_code_existing_user(self, mock_post, mock_get):
         # 기존 사용자 생성
         SocialAccount.objects.create(
             provider="kakao",
             provider_user_id="123456789",
-            email="test@kakao.com"
+            email="test@kakao.com",
         )
         Member.objects.create(email="test@kakao.com")
 
         mock_post.return_value = Mock(
             status_code=200,
-            json=Mock(return_value={"access_token": "mock_token"})
+            json=Mock(return_value={"access_token": "mock_token"}),
         )
         mock_get.return_value = Mock(
-            status_code=200,
-            json=Mock(return_value=self.mock_user_data)
+            status_code=200, json=Mock(return_value=self.mock_user_data)
         )
 
         response = self.client.get(self.url, {"code": "valid_code"})
@@ -90,7 +90,7 @@ class NaverLoginCallbackTest(OAuthBaseTest):
             "response": {
                 "id": "987654321",
                 "email": "test@naver.com",
-                "profile_image": "http://naver.com/profile.jpg"
+                "profile_image": "http://naver.com/profile.jpg",
             }
         }
 
@@ -101,16 +101,15 @@ class NaverLoginCallbackTest(OAuthBaseTest):
         self.assertJSONEqual(response.content, {"error": "missing code"})
 
     # Case 2: 신규 사용자
-    @patch('member.views.requests.get')
-    @patch('member.views.requests.post')
+    @patch("member.views.requests.get")
+    @patch("member.views.requests.post")
     def test_valid_code_new_user(self, mock_post, mock_get):
         mock_post.return_value = Mock(
             status_code=200,
-            json=Mock(return_value={"access_token": "mock_token"})
+            json=Mock(return_value={"access_token": "mock_token"}),
         )
         mock_get.return_value = Mock(
-            status_code=200,
-            json=Mock(return_value=self.mock_user_data)
+            status_code=200, json=Mock(return_value=self.mock_user_data)
         )
 
         response = self.client.get(self.url, {"code": "valid_code"})
@@ -121,23 +120,22 @@ class NaverLoginCallbackTest(OAuthBaseTest):
         self.assertEqual(social_account.provider_user_id, "987654321")
 
     # Case 3: 기존 사용자
-    @patch('member.views.requests.get')
-    @patch('member.views.requests.post')
+    @patch("member.views.requests.get")
+    @patch("member.views.requests.post")
     def test_valid_code_existing_user(self, mock_post, mock_get):
         SocialAccount.objects.create(
             provider="naver",
             provider_user_id="987654321",
-            email="test@naver.com"
+            email="test@naver.com",
         )
         Member.objects.create(email="test@naver.com")
 
         mock_post.return_value = Mock(
             status_code=200,
-            json=Mock(return_value={"access_token": "mock_token"})
+            json=Mock(return_value={"access_token": "mock_token"}),
         )
         mock_get.return_value = Mock(
-            status_code=200,
-            json=Mock(return_value=self.mock_user_data)
+            status_code=200, json=Mock(return_value=self.mock_user_data)
         )
 
         response = self.client.get(self.url, {"code": "valid_code"})

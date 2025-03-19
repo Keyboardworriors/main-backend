@@ -11,14 +11,28 @@ from django.db.models.manager import Manager
 
 
 class MemberManager(BaseUserManager):
-    def create_user(self, email, nickname,introduce=None, favorite_genre=None,password=None, **extra_fields):
+    def create_user(
+        self,
+        email,
+        nickname,
+        introduce=None,
+        favorite_genre=None,
+        password=None,
+        **extra_fields,
+    ):
         """
         이메일을 사용한 일반 사용자 생성 메서드
         """
         if not email:
             raise ValueError("The Email field must be set")
         email = self.normalize_email(email)
-        user = self.model(email=email, nickname=nickname, introduce=introduce, favorite_genre=favorite_genre, **extra_fields)
+        user = self.model(
+            email=email,
+            nickname=nickname,
+            introduce=introduce,
+            favorite_genre=favorite_genre,
+            **extra_fields,
+        )
         user.set_password(password)
         user.save(using=self._db)
         return user

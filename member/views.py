@@ -7,7 +7,7 @@ from rest_framework.views import APIView, Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from diary import serializers
-from member.models import SocialAccount, Member
+from member.models import Member, SocialAccount
 from member.serializer import (
     MemberSerializer,
     ProfileSerializer,
@@ -16,24 +16,25 @@ from member.serializer import (
 
 User = get_user_model()
 
+
 class MemberRegister(APIView):
-    def get(self,request):
+    def get(self, request):
         social_account = request.session.get("social_account")
         try:
             data = {
-                "email":social_account["email"],
-                "profile_image": social_account["profile_image"]
+                "email": social_account["email"],
+                "profile_image": social_account["profile_image"],
             }
             return Response(data, status=200)
         except Exception as e:
-            return Response({"error":f"{e}"}, status=400)
+            return Response({"error": f"{e}"}, status=400)
         finally:
             request.session.pop("social_account_id", None)
 
-    def post(self,request):
-        nickname = request.data.get("nickname",None)
-        introduce = request.data.get("introduce",None)
-        favorite_genre = request.data.get("favorite_genre",None)
+    def post(self, request):
+        nickname = request.data.get("nickname", None)
+        introduce = request.data.get("introduce", None)
+        favorite_genre = request.data.get("favorite_genre", None)
         if not isinstance(favorite_genre, list):
             favorite_genre = [favorite_genre]
         email = request.data.get("email")
@@ -55,7 +56,10 @@ class MemberRegister(APIView):
                 "user": member_dict,
             }
         )
-    def create_member(self, social_account,nickname, introduce, favorite_genre):
+
+    def create_member(
+        self, social_account, nickname, introduce, favorite_genre
+    ):
         data = {
             "email": social_account.email,  # social_account에서 이메일 가져오기
             "nickname": nickname,
@@ -67,8 +71,9 @@ class MemberRegister(APIView):
             return serializer.save()
         raise serializers.ValidationError(serializer.errors)
 
+
 class Login(APIView):
-    def get(self,request):
+    def get(self, request):
         social_account = request.session.get("social_account")
         member = User.objects.filter(email=social_account["email"]).first()
         member_dict = model_to_dict(member)
@@ -82,6 +87,8 @@ class Login(APIView):
                 "user": member_dict,
             }
         )
+
+
 class Logout(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -96,6 +103,7 @@ class Logout(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 
+
 class MemberMypageView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -109,7 +117,7 @@ class MemberMypageView(APIView):
         serializer = MemberSerializer(member, data=request.data, partial=True)
 
         if not serializer.is_valid():
-            return Response({"errors":serializer.errors}, status=400)
+            return Response({"errors": serializer.errors}, status=400)
         serializer.save()
         return Response(serializer.data, status=200)
 

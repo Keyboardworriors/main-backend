@@ -1,7 +1,12 @@
 from django.urls import path
 
-from member.views import Logout, MemberMypageView, MemberProfileView, Login, \
-    MemberRegister
+from member.views import (
+    Login,
+    Logout,
+    MemberMypageView,
+    MemberProfileView,
+    MemberRegister,
+)
 
 app_name = "member"
 urlpatterns = [
