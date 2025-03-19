@@ -173,3 +173,5 @@ NAVER_REDIRECT_URL = secrets["naver"]["redirect_url"]
 KAKAO_CLIENT_ID = secrets["kakao"]["client_id"]
 KAKAO_SECRET = secrets["kakao"]["secret"]
 KAKAO_REDIRECT_URL = secrets["kakao"]["redirect_url"]
+
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
