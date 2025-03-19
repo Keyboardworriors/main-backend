@@ -30,9 +30,7 @@ class MusicRecommendationView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        search_query = " ".join(
-            moods + ["음악"] + favorite_genre
-        )  # moods keywords + genre 조합으로 검색
+        search_query = f"{' '.join(moods)} 감성 음악 {' '.join(favorite_genre)}"  # moods keywords + genre 조합으로 검색
 
         # YouTube Data API(공식) 에서 감정 키워드 기반으로 검색
         search_results = (
