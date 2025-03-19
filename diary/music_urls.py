@@ -1,3 +1,9 @@
+from os import path
+
+from diary.views_music import MusicRecommendationView
+
 app_name = "music"
 
-urlpatterns = []
+urlpatterns = [
+    path("recommend", MusicRecommendationView.as_view(), name="music-recommend")
+]
