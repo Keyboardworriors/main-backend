@@ -23,8 +23,15 @@ class DiarySerializer(serializers.ModelSerializer):
                 "일기 내용은 최소 20자 이상 입력해야 합니다."
             )
 
+
 class MusicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Music
-        fields = ["videoId","title","artist","thumbnail","embedUrl"]
-        read_only_fields = ["videoId","title","artist","thumbnail","embedUrl"]
+        fields = ["videoId", "title", "artist", "thumbnail", "embedUrl"]
+        read_only_fields = [
+            "videoId",
+            "title",
+            "artist",
+            "thumbnail",
+            "embedUrl",
+        ]
