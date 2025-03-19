@@ -161,6 +161,8 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "ROTATE_REFRESH_TOKENS": True,
     "ALGORITHM": "HS256",
+    "USER_ID_FIELD": "member_id",
+    "USER_ID_CLAIM": "member_id",
 }
 
 NAVER_CLIENT_ID = secrets["naver"]["client_id"]

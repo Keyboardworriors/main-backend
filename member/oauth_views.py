@@ -1,18 +1,9 @@
-import random
-import string
-
 import requests
-from django.contrib.auth import login
-from rest_framework.views import APIView, Response
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from config import settings
-from config.settings import (
-    KAKAO_CLIENT_ID,
-    KAKAO_REDIRECT_URL,
-    KAKAO_SECRET,
-)
-from member.models import Member, SocialAccount
+from member.models import SocialAccount
 
 
 class KakaoLoginCallback(APIView):
@@ -20,48 +11,52 @@ class KakaoLoginCallback(APIView):
         code = request.GET.get("code")
         if not code:
             return Response({"error": "Code is missing"}, status=400)
-
         access_token = self.get_access_kakao_token(code)
+        if not access_token:
+            return Response(
+                {"error": "Failed to get Kakao access token"}, status=500
+            )
         member_info = self.get_member_info_kakao(access_token)
+        if "error" in member_info:
+            return Response(member_info, status=500)
         social_account = self.get_or_create_social_account(member_info)
-        member = self.get_or_create_member(social_account, member_info)
+        social_account_data = {
+            "provider": social_account.provider,
+            "email": social_account.email,
+            "profile_image": social_account.profile_image,
+            "is_registered": social_account.is_registered,
+            "member_id": (
+                str(social_account.member.id) if social_account.member else None
+            ),
+        }
+        return Response(social_account_data, status=200)
 
-        login(request, member)
-        refresh = RefreshToken.for_user(member)
-        return Response(
-            {
-                "message": "Successfully logined",
-                "access_token": str(refresh.access_token),
-                "refresh_token": str(refresh),
-                "user": member,
-            }
-        )
-
-    # 카카오에서 access_token 받아오기
     def get_access_kakao_token(self, code):
         url = "https://kauth.kakao.com/oauth/token"
         data = {
             "grant_type": "authorization_code",
-            "client_id": KAKAO_CLIENT_ID,
-            "client_secret": KAKAO_SECRET,
-            "redirect_uri": KAKAO_REDIRECT_URL,
+            "client_id": settings.KAKAO_CLIENT_ID,
+            "client_secret": settings.KAKAO_SECRET,
+            "redirect_uri": settings.KAKAO_REDIRECT_URL,
             "code": code,
         }
-        response = requests.post(url, data=data)
-        response_data = response.json()
-        if response.status_code == 200:
-            return response_data["access_token"]
-        else:
+        try:
+            response = requests.post(url, data=data)
+            response.raise_for_status()
+            return response.json().get("access_token")
+        except requests.RequestException as e:
             return None
 
-    # 카카오에서 멤버 정보 받아오기
     def get_member_info_kakao(self, access_token):
         url = "https://kapi.kakao.com/v2/user/me"
         headers = {"Authorization": f"Bearer {access_token}"}
-        response = requests.get(url, headers=headers)
-        return response.json()
+        try:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            return {"error": f"Kakao User Info Error: {str(e)}"}
 
-    # 소셜 어카운트 조회 혹은 생성
     def get_or_create_social_account(self, member_info):
         kakao_account = member_info.get("kakao_account", {})
         email = kakao_account.get("email")
@@ -73,47 +68,41 @@ class KakaoLoginCallback(APIView):
         social_account, _ = SocialAccount.objects.get_or_create(
             provider="kakao",
             provider_user_id=provider_user_id,
-            defaults={"email": email, "profile_image": profile_image},
+            defaults={
+                "email": email,
+                "profile_image": profile_image,
+                "is_registered": False,
+            },
         )
-
         return social_account
-
-    # 멤버 조회 또는 생성
-    def get_or_create_member(self, social_account, member_info):
-        if social_account.member:
-            return social_account.member
-        nickname = generate_random_string(10)
-        member = Member.objects.create_user(
-            email=social_account.email, nickname=nickname
-        )
-        social_account.member = member
-        social_account.save()
-        return member
 
 
 class NaverLoginCallback(APIView):
-
     def get(self, request):
         code = request.GET.get("code")
         if not code:
             return Response({"error": "missing code"}, status=400)
         access_token = self.get_access_naver_token(code)
+        if not access_token:
+            return Response(
+                {"error": "Failed to get Naver access token"}, status=500
+            )
         member_info = self.get_member_info_naver(access_token)
+        if "error" in member_info:
+            return Response(member_info, status=500)
         social_account = self.get_or_create_social_account(member_info)
-        member = self.get_or_create_member(social_account, member_info)
-        login(request, member)
-        refresh = RefreshToken.for_user(member)
-        return Response(
-            {
-                "message": "Successfully logined",
-                "access_token": str(refresh.access_token),
-                "refresh_token": str(refresh),
-                "user": member,
-            }
-        )
+        social_account_data = {
+            "provider": social_account.provider,
+            "email": social_account.email,
+            "profile_image": social_account.profile_image,
+            "is_registered": social_account.is_registered,
+            "member_id": (
+                str(social_account.member.id) if social_account.member else None
+            ),
+        }
+        return Response(social_account_data, status=200)
 
     def get_access_naver_token(self, code):
-        """네이버 OAuth 토큰 요청 (쿼리 파라미터 사용)"""
         url = "https://nid.naver.com/oauth2.0/token"
         params = {
             "grant_type": "authorization_code",
@@ -122,17 +111,23 @@ class NaverLoginCallback(APIView):
             "redirect_uri": settings.NAVER_REDIRECT_URL,
             "code": code,
         }
-        response = requests.post(url, params=params)
-        response_data = response.json()
-        return response_data.get("access_token")
+        try:
+            response = requests.post(url, params=params)
+            response.raise_for_status()
+            return response.json().get("access_token")
+        except requests.RequestException as e:
+            return None
 
     def get_member_info_naver(self, access_token):
         url = "https://openapi.naver.com/v1/nid/me"
         headers = {"Authorization": f"Bearer {access_token}"}
-        response = requests.get(url, headers=headers)
-        return response.json().get("response", {})
+        try:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            return response.json().get("response", {})
+        except requests.RequestException as e:
+            return {"error": f"Naver User Info Error: {str(e)}"}
 
-    # 소셜 어카운트 조회 혹은 생성
     def get_or_create_social_account(self, member_info):
         email = member_info.get("email")
         profile_image = member_info.get("profile_image_url", "")
@@ -141,25 +136,10 @@ class NaverLoginCallback(APIView):
         social_account, _ = SocialAccount.objects.get_or_create(
             provider="naver",
             provider_user_id=provider_user_id,
-            defaults={"email": email, "profile_image": profile_image},
+            defaults={
+                "email": email,
+                "profile_image": profile_image,
+                "is_registered": False,
+            },
         )
-
         return social_account
-
-    # 멤버 조회 또는 생성
-    def get_or_create_member(self, social_account, member_info):
-        if social_account.member:
-            return social_account.member
-        nickname = generate_random_string(10)
-
-        member = Member.objects.create_user(
-            email=social_account.email, nickname=nickname
-        )
-        social_account.member = member
-        social_account.save()
-        return member
-
-
-def generate_random_string(length=10):
-    characters = string.ascii_letters + string.digits  # 영문 대소문자 + 숫자
-    return "".join(random.choices(characters, k=length))

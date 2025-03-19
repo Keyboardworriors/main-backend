@@ -11,14 +11,28 @@ from django.db.models.manager import Manager
 
 
 class MemberManager(BaseUserManager):
-    def create_user(self, email, nickname, password=None, **extra_fields):
+    def create_user(
+        self,
+        email,
+        nickname,
+        introduce=None,
+        favorite_genre=None,
+        password=None,
+        **extra_fields,
+    ):
         """
         이메일을 사용한 일반 사용자 생성 메서드
         """
         if not email:
             raise ValueError("The Email field must be set")
         email = self.normalize_email(email)
-        user = self.model(email=email, nickname=nickname, **extra_fields)
+        user = self.model(
+            email=email,
+            nickname=nickname,
+            introduce=introduce,
+            favorite_genre=favorite_genre,
+            **extra_fields,
+        )
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -27,6 +41,7 @@ class MemberManager(BaseUserManager):
         """
         슈퍼유저 생성 메서드
         """
+        extra_fields.setdefault("is_active", True)
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
 
@@ -40,11 +55,11 @@ class Member(AbstractBaseUser, PermissionsMixin):
     )
     email = models.EmailField(unique=True, null=False, blank=False)
     nickname = models.CharField(
-        max_length=20, unique=True, null=False, blank=False
+        max_length=30, unique=True, null=False, blank=False
     )
-    introduce = models.CharField(max_length=50, blank=True)
+    introduce = models.CharField(max_length=50, blank=True, null=True)
     favorite_genre = ArrayField(
-        models.CharField(max_length=10), blank=True, default=list
+        models.CharField(max_length=10), blank=True, default=list, null=True
     )
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -75,12 +90,16 @@ class SocialAccount(models.Model):
         primary_key=True, default=uuid.uuid4, editable=False, db_index=True
     )
     member = models.ForeignKey(
-        Member, on_delete=models.CASCADE, related_name="social_accounts"
+        Member,
+        on_delete=models.CASCADE,
+        related_name="social_accounts",
+        null=True,
     )
     provider = models.CharField(max_length=20)
     provider_user_id = models.CharField(max_length=255, unique=True)
     email = models.EmailField()
     profile_image = models.URLField(blank=True)
+    is_registered = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = Manager()

@@ -16,8 +16,10 @@ dependencies = [
     "requests (>=2.32.3,<3.0.0)",
     "python-dotenv (>=1.0.1,<2.0.0)",
     "djangorestframework-simplejwt (>=5.5.0,<6.0.0)",
+    "pytest (>=8.3.5,<9.0.0)",
+    "pytest-django (>=4.10.0,<5.0.0)",
     "ytmusicapi (>=1.10.2,<2.0.0)",
-    "apiclient (>=1.0.4,<2.0.0)"
+     "apiclient (>=1.0.4,<2.0.0)"
 ]
 
 
