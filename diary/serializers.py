@@ -15,7 +15,7 @@ class DiarySerializer(serializers.ModelSerializer):
             "rec_music",
             "created_at",
         ]
-        read_only_fields = ["diary_id","member" ,"created_at"]
+        read_only_fields = ["diary_id", "member", "created_at"]
 
     # content (일기내용) 필드의 길이 제한 검증 추가
     def validate_content(self, value):
@@ -26,6 +26,8 @@ class DiarySerializer(serializers.ModelSerializer):
                 "일기 내용은 최소 20자 이상 입력해야 합니다."
             )
         return value
+
+
 class MusicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Music

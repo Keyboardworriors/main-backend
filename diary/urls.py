@@ -10,7 +10,6 @@ from diary.views import (
 
 app_name = "diary"
 urlpatterns = [
-
     path("", DiaryListView.as_view(), name="diary-main"),
     path("<uuid:diary_id>/", DiaryDetailView.as_view(), name="diary-detail"),
     path("search/", DiarySearchView.as_view(), name="diary-search"),

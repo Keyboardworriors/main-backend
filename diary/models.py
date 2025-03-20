@@ -21,7 +21,9 @@ class Music(models.Model):
 
 # 다이어리 테이블
 class Diary(models.Model):
-    diary_id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
+    diary_id = models.UUIDField(
+        primary_key=True, unique=True, default=uuid.uuid4, editable=False
+    )
     member = models.ForeignKey(
         "member.Member", on_delete=models.CASCADE, related_name="diaries"
     )

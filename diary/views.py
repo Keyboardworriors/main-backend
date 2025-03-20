@@ -37,7 +37,9 @@ class DiaryDetailView(APIView):
     # 특정 일기 조회
     def get(self, request, diary_id=None):
         if diary_id:
-            diary = get_object_or_404(Diary, diary_id=diary_id, member=request.user)
+            diary = get_object_or_404(
+                Diary, diary_id=diary_id, member=request.user
+            )
             serializer = DiarySerializer(diary)
             return Response(
                 {
@@ -78,8 +80,10 @@ class DiaryCreateView(APIView):
 
     # 오늘 날짜 일기 작성
     def post(self, request):
-        print('request.data', request.data)
-        serializer = DiarySerializer(data=request.data, context={"request": request})
+        print("request.data", request.data)
+        serializer = DiarySerializer(
+            data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save(member=request.user)
             return Response(
