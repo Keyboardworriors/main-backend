@@ -58,7 +58,7 @@ class DiaryDetailView(APIView):
         )
 
     # 특정 일기 삭제
-    def delete(self, request, diary_id) :
+    def delete(self, request, diary_id):
         diary = get_object_or_404(Diary, diary_id=diary_id, member=request.user)
         if diary.member != request.user:
             return Response(
@@ -73,6 +73,7 @@ class DiaryDetailView(APIView):
             {"message": "Successfully deleted."},
             status=status.HTTP_200_OK,
         )
+
 
 # 일기 작성
 class DiaryCreateView(APIView):

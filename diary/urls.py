@@ -13,5 +13,4 @@ urlpatterns = [
     path("<uuid:diary_id>/", DiaryDetailView.as_view(), name="diary-detail"),
     path("search/", DiarySearchView.as_view(), name="diary-search"),
     path("create/", DiaryCreateView.as_view(), name="diary-create"),
-
 ]

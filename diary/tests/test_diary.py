@@ -1,12 +1,13 @@
+import datetime
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
-from django.conf import settings
-import datetime
+
 from diary.models import Diary
 
 User = get_user_model()
-
 
 
 class DiaryAPITestCase(APITestCase):
@@ -44,9 +45,15 @@ class DiaryTests(APITestCase):
         self.diary_url = f"/api/diary/{self.diary.diary_id}/"
 
         self.today = datetime.date.today().strftime("%Y-%m-%d")
-        self.past_date_0 = (datetime.date.today() - datetime.timedelta(days=4)).strftime("%Y-%m-%d")
-        self.past_date = (datetime.date.today() - datetime.timedelta(days=5)).strftime("%Y-%m-%d")
-        self.future_date = (datetime.date.today() + datetime.timedelta(days=3)).strftime("%Y-%m-%d")
+        self.past_date_0 = (
+            datetime.date.today() - datetime.timedelta(days=4)
+        ).strftime("%Y-%m-%d")
+        self.past_date = (
+            datetime.date.today() - datetime.timedelta(days=5)
+        ).strftime("%Y-%m-%d")
+        self.future_date = (
+            datetime.date.today() + datetime.timedelta(days=3)
+        ).strftime("%Y-%m-%d")
 
     def test_create_diary(self):
         payload = {
@@ -73,9 +80,11 @@ class DiaryTests(APITestCase):
             "diary_title": "빈 과거 날짜의 일기",
             "content": "과거의 날짜중 일기를 쓰지 않은 날 작성이 가능해야 한다! 제발 되쓰면 ㅎㅎ",
             "moods": ["초조", "희망"],
-            "created_at": self.past_date
+            "created_at": self.past_date,
         }
-        print(f"🚀 테스트: 과거 일기 작성 요청 payload: {payload}")  # 추가된 디버깅 로그
+        print(
+            f"🚀 테스트: 과거 일기 작성 요청 payload: {payload}"
+        )  # 추가된 디버깅 로그
 
         response = self.client.post(
             "/api/diary/create/", data=payload, format="json"
@@ -93,16 +102,14 @@ class DiaryTests(APITestCase):
             "diary_title": "오늘 이후의 일기",
             "content": "오늘 이후 즉, 미래의 일기는 써지면 안된다. 안될 거 같아서 매우 초조하다 엄청 피곤함..",
             "moods": ["불안", "피곤"],
-            "created_at": self.future_date
+            "created_at": self.future_date,
         }
         response = self.client.post(
             "/api/diary/create/", data=payload, format="json"
         )
         print("🔹 서버 응답:", response.data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.data["error"], "invalid_request"
-        )
+        self.assertEqual(response.data["error"], "invalid_request")
         print("🥳 미래 날짜 일기 작성 방지 테스트 통과")
 
     #  중복 일기 실패 테스트
@@ -111,12 +118,15 @@ class DiaryTests(APITestCase):
             "diary_title": "오늘 일기 또쓰지롱",
             "content": "오늘 날짜로 일기 또쓰는데 과연 될런지 .. 기대가 됩니다.",
             "moods": ["불안", "피곤"],
-            "created_at": self.today}
+            "created_at": self.today,
+        }
 
         self.client.post("/api/diary/create/", data=payload, format="json")
-        response = self.client.post("/api/diary/create/", data=payload, format="json")
+        response = self.client.post(
+            "/api/diary/create/", data=payload, format="json"
+        )
         print("🔹 서버 응답:", response.data)
-        self.assertEqual(response.status_code,status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data["error"], "invalid_request")
         print("🥳 중복된 날짜의 일기 생성 방지 테스트 통과")
 
@@ -132,7 +142,6 @@ class DiaryTests(APITestCase):
         self.assertEqual(response.data["data"]["diary_id"], diary_id)
         print("🥳 일기 조회 테스트 통과")
 
-
     def test_search_diary(self):
         """일기 검색 테스트"""
         payload = {"q": "test"}
@@ -147,8 +156,11 @@ class DiaryTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue("data" in response.data)
         print("🥳 일기 검색 테스트 통과!")
+
     def test_delete_diary(self):
-        diary_exists = Diary.objects.filter(diary_id=self.diary.diary_id).exists()
+        diary_exists = Diary.objects.filter(
+            diary_id=self.diary.diary_id
+        ).exists()
 
         print(f"✅ 삭제 전 일기 존재 여부: {diary_exists}")
 
@@ -158,7 +170,9 @@ class DiaryTests(APITestCase):
         print(f"🔹 삭제 요청 응답 데이터: {response.data}")
 
         # ✅ 삭제 후 다시 체크
-        diary_exists_after = Diary.objects.filter(diary_id=self.diary.diary_id).exists()
+        diary_exists_after = Diary.objects.filter(
+            diary_id=self.diary.diary_id
+        ).exists()
         print(f"✅ 삭제 후 일기 존재 여부: {diary_exists_after}")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
