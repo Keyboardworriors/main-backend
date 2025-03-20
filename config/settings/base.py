@@ -175,3 +175,4 @@ KAKAO_SECRET = secrets["kakao"]["secret"]
 KAKAO_REDIRECT_URL = secrets["kakao"]["redirect_url"]
 
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+GOOGLE_API_KEY = secrets["google1"]["api_key"]
