@@ -13,11 +13,11 @@ class GetMoods(APIView):
         content = request.data.get("content")
         if not content:
             return Response({"error": "Invalid data"}, 400)
-        emotions = [
-            emotion.strip() for emotion in self.get_emotions(content).split(",")
+        moods = [
+            moods.strip() for moods in self.get_emotions(content).split(",")
         ]
 
-        data = {"emotions": emotions}
+        data = {"moods": moods}
         return Response(data, status=200)
 
     def get_emotions(self, content):
