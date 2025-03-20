@@ -27,7 +27,7 @@ urlpatterns = [
     path("api/members/", include("member.urls")),
     path("oauth/", include("member.oauth_urls")),
     path("api/diary/", include("diary.urls")),
-    path("api/diary/ai/", include("diary.ai_urls")),
+    path("api/diary/recommendation-keyword", include("diary.ai_urls")),
     path("api/diary/music/", include("diary.music_urls")),
     path(
         "swagger/",
