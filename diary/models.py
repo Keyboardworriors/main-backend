@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
@@ -5,11 +7,13 @@ from django.db import models
 # 음악정보 저장 테이블
 class Music(models.Model):
     music_id = models.AutoField(primary_key=True)
-    videoId = models.CharField(max_length=50)  # youtube 고유 video id
+    videoId = models.CharField(
+        max_length=50, unique=True, default=""
+    )  # youtube 고유 video id
     title = models.CharField(max_length=100)
     artist = models.CharField(max_length=100)
-    thumbnail = models.URLField()
-    embedUrl = models.URLField(blank=True, null=True)
+    thumbnail = models.URLField(null=False, blank=False)
+    embedUrl = models.URLField(default="https://www.youtube.com")
 
     def __str__(self):
         return self.title
@@ -17,8 +21,8 @@ class Music(models.Model):
 
 # 다이어리 테이블
 class Diary(models.Model):
-    diary_id = models.UUIDField(primary_key=True, unique=True)
-    member_id = models.ForeignKey(
+    diary_id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
+    member = models.ForeignKey(
         "member.Member", on_delete=models.CASCADE, related_name="diaries"
     )
     diary_title = models.CharField(max_length=100)

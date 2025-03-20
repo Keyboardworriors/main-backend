@@ -1,4 +1,4 @@
-from os import path
+from django.urls import path
 
 from diary.views_music import MusicRecommendationView
 
