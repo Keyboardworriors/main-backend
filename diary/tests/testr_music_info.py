@@ -4,7 +4,7 @@ from diary.views_music import get_youtube_info
 
 
 class TestMusicInfo(TestCase):
-
+    # 받은 리스트로 음악 정보 얻는 테스트
     def test_music_info(self):
         recommendations = [
             {"title": "봄편지", "artist": "아이유"},
