@@ -52,6 +52,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # own apps
+    "core",
     "member",
     "diary",
     "rest_framework",
