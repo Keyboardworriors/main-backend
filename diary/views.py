@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+import diary
 from diary.models import Diary
 from diary.serializers import DiarySerializer
 
@@ -17,15 +18,18 @@ class DiaryListView(APIView):
     # 메인페이지에서의 일기 조회
     def get(self, request):
         # 일기 날짜 리스트만 조회
-        diaries = Diary.objects.filter(member=request.user).values_list(
-            "created_at", flat=True
+        all_diary = Diary.objects.filter(member=request.user).values(
+            "diary_id","created_at"
         )
-        diary_dates = [diary.strftime("%Y-%m-%d") for diary in diaries if diary]
+        diary_data = [{
+            "data" : diary["created_at"].strftime("%Y-%m-%d"),
+            "diary_id" : str(diary["diary_id"]),}
+            for diary in all_diary]
 
         return Response(
             {
                 "message": "일기 날짜 데이터 불러오기 성공.",
-                "data": diary_dates,
+                "data": diary_data,
             },
             status=status.HTTP_200_OK,
         )
