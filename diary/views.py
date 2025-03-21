@@ -63,15 +63,8 @@ class DiaryDetailView(APIView):
 
     # 특정 일기 삭제
     def delete(self, request, diary_id):
-        diary = get_object_or_404(Diary, diary_id=diary_id, member=request.user)
-        if diary.member != request.user:
-            return Response(
-                {
-                    "error": "forbidden",
-                    "message": "권한이 없습니다.",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        diary = get_object_or_404(Diary, diary_id=diary_id, member=request.user.social_account_id)
+
         diary.delete()
         return Response(
             {"message": "Successfully deleted."},
