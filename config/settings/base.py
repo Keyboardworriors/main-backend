@@ -38,9 +38,7 @@ else:
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY"
-)  # or secrets.get("SECRET_KEY","django-insecure-px57&b8-(+ujqkq^$v$+85zzwcib7cm)7&qriv@-#2d6k*&j_z")
+SECRET_KEY = secrets["SECRET_KEY"]  # or secrets.get("SECRET_KEY","django-insecure-px57&b8-(+ujqkq^$v$+85zzwcib7cm)7&qriv@-#2d6k*&j_z")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -175,7 +173,7 @@ KAKAO_CLIENT_ID = secrets["kakao"]["client_id"]
 KAKAO_SECRET = secrets["kakao"]["secret"]
 KAKAO_REDIRECT_URL = secrets["kakao"]["redirect_url"]
 
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+YOUTUBE_API_KEY = secrets["youtube"]["api-key"]
 GOOGLE_API_KEY = secrets["google1"]["api_key"]
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

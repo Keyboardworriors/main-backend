@@ -17,8 +17,7 @@ jobs:
         env:
           POSTGRES_USER: ${{ secrets.PG_USER }}
           POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_NAME }}
-          SECRETS_JSON: ${{ secrets.SECRETS_JSON }}
+          POSTGRES_DB: ${{ secrets.PG_DB }}
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -33,6 +32,16 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.13'
+
+      - name: Create .env file
+        run: |
+          echo "DJANGO_ENV=dev" >> $GITHUB_WORKSPACE/.env
+          echo "DB_NAME=${{ secrets.PG_DB }}" >> $GITHUB_WORKSPACE/.env
+          echo "DB_USER=${{ secrets.PG_USER }}" >> $GITHUB_WORKSPACE/.env
+          echo "DB_PASSWORD=${{ secrets.PG_PASSWORD }}" >> $GITHUB_WORKSPACE/.env
+          echo "DB_HOST=localhost" >> $GITHUB_WORKSPACE/.env
+          echo "DB_PORT=5432" >> $GITHUB_WORKSPACE/.env
+
       - name: Create secrets.json
         run: |
           echo '${{ secrets.SECRETS_JSON }}' > $GITHUB_WORKSPACE/secrets.json
