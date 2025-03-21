@@ -178,7 +178,7 @@ KAKAO_REDIRECT_URL = secrets["kakao"]["redirect_url"]
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 GOOGLE_API_KEY = secrets["google1"]["api_key"]
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
 }

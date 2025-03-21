@@ -1,11 +1,11 @@
 from django.urls import path
 
 from member.views import (
+    CreateMemberInfo,
     Login,
     Logout,
     MemberMypageView,
     MemberProfileView,
-    CreateMemberInfo,
 )
 
 app_name = "member"

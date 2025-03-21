@@ -2,7 +2,8 @@ import json
 from xml.dom import ValidationErr
 
 from rest_framework import serializers
-from member.models import SocialAccount, MemberInfo
+
+from member.models import MemberInfo, SocialAccount
 
 
 class SocialAccountSerializer(serializers.ModelSerializer):
@@ -26,12 +27,16 @@ class MemberInfoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("중복된 닉네임입니다.")
 
         if len(value.encode("utf-8")) > 30:
-            raise serializers.ValidationError("닉네임은 한글 기준으로 최대 15자까지 입력할 수 있습니다.")
+            raise serializers.ValidationError(
+                "닉네임은 한글 기준으로 최대 15자까지 입력할 수 있습니다."
+            )
         return value
 
     def validate_introduce(self, value):
         if value and len(value) > 25:
-            raise serializers.ValidationError("한 줄 소개는 25자 이내로 적어주세요.")
+            raise serializers.ValidationError(
+                "한 줄 소개는 25자 이내로 적어주세요."
+            )
         return value
 
     def validate_favorite_genre(self, value):
@@ -41,7 +46,9 @@ class MemberInfoSerializer(serializers.ModelSerializer):
             except json.JSONDecodeError:
                 raise serializers.ValidationError("올바른 형식이 아닙니다.")
         elif not isinstance(value, list):
-            raise serializers.ValidationError("favorite_genre는 리스트 형식이어야 합니다.")
+            raise serializers.ValidationError(
+                "favorite_genre는 리스트 형식이어야 합니다."
+            )
         return value or []
 
     def update(self, instance, validated_data):
@@ -80,11 +87,13 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_profile_image(self, obj):
         return obj.social_account.profile_image if obj.social_account else None
 
+
 class SocialAccountInfoSerializer(serializers.Serializer):
     is_active = serializers.ReadOnlyField()
+
     class Meta:
         provider = serializers.CharField()
-        email =  serializers.EmailField()
+        email = serializers.EmailField()
         profile_image = serializers.URLField()
         is_active = serializers.BooleanField()
 

@@ -23,7 +23,7 @@ class KakaoLoginCallback(APIView):
         social_account = self.get_or_create_social_account(member_info)
         serializer = SocialAccountInfoSerializer(social_account)
         if serializer.is_valid():
-            return Response(serializer.data, status= 200)
+            return Response(serializer.data, status=200)
         return Response(serializer.errors, status=400)
 
     def get_access_kakao_token(self, code):

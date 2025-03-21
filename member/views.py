@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model, login
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView, Response
 from rest_framework_simplejwt.tokens import RefreshToken
+
 from member.models import MemberInfo, SocialAccount
 from member.serializer import (
     MemberInfoSerializer,
@@ -24,9 +25,9 @@ class CreateMemberInfo(APIView):
         if not social_account:
             return Response({"error": "소셜 계정을 찾을 수 없습니다"}, 400)
         data = copy.deepcopy(request.data)
-        data['social_account'] = social_account
+        data["social_account"] = social_account
         serializer = MemberInfoSerializer(data=data)
-        if  not serializer.is_valid():
+        if not serializer.is_valid():
             return Response(serializer.errors, status=400)
         social_account.is_active = True
         social_account.save()
@@ -37,9 +38,9 @@ class CreateMemberInfo(APIView):
                 "access_token": str(refresh.access_token),
                 "refresh_token": str(refresh),
                 "user": {
-                    "email":serializer.data["email"],
-                    "profile_image":social_account.profile_image,
-                    "nickname" : serializer.data["nickname"],
+                    "email": serializer.data["email"],
+                    "profile_image": social_account.profile_image,
+                    "nickname": serializer.data["nickname"],
                     "introduce": serializer.data["introduce"],
                     "favorite_genre": serializer.data["favorite_genre"],
                 },
@@ -53,7 +54,7 @@ class CreateMemberInfo(APIView):
             "nickname": nickname,
             "introduce": introduce,
             "favorite_genre": favorite_genre,
-            "social_account": social_account
+            "social_account": social_account,
         }
         serializer = MemberInfoSerializer(data=data)
         if serializer.is_valid():
@@ -64,10 +65,14 @@ class CreateMemberInfo(APIView):
 class Login(APIView):
     def post(self, request):
         email = request.data.get("email")
-        member_info = MemberInfo.objects.filter(social_account__email=email).first()
+        member_info = MemberInfo.objects.filter(
+            social_account__email=email
+        ).first()
 
         if not member_info.social_account.is_active:
-            return Response({"error": "회원 정보 등록이 필요합니다"}, status=404)
+            return Response(
+                {"error": "회원 정보 등록이 필요합니다"}, status=404
+            )
         member_data = {
             "social_account": member_info.social_account,
             "nickname": member_info.nickname,
@@ -104,14 +109,20 @@ class MemberMypageView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        member_info  = MemberInfo.objects.filter(social_account=request.user.social_account).first()
+        member_info = MemberInfo.objects.filter(
+            social_account=request.user.social_account
+        ).first()
         serializer = SocialAccountSerializer(member_info)
         return Response(serializer.data, status=200)
 
     def patch(self, request, member_id):
         social_account = request.user.social_account
-        member_info = MemberInfo.objects.filter(social_account=social_account).first()
-        serializer = MemberInfoSerializer(member_info, data=request.data, partial=True)
+        member_info = MemberInfo.objects.filter(
+            social_account=social_account
+        ).first()
+        serializer = MemberInfoSerializer(
+            member_info, data=request.data, partial=True
+        )
 
         if not serializer.is_valid():
             return Response({"errors": serializer.errors}, status=400)
@@ -127,6 +138,8 @@ class MemberMypageView(APIView):
 
 class MemberProfileView(APIView):
     def get(self, request, member_id):
-        member_info = MemberInfo.objects.filter(social_account=request.user.social_account).first()
+        member_info = MemberInfo.objects.filter(
+            social_account=request.user.social_account
+        ).first()
         serializer = ProfileSerializer(member_info)
         return Response(serializer.data, status=200)
