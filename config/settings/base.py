@@ -162,8 +162,8 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "ROTATE_REFRESH_TOKENS": True,
     "ALGORITHM": "HS256",
-    "USER_ID_FIELD": "member_id",
-    "USER_ID_CLAIM": "member_id",
+    "USER_ID_FIELD": "social_account_id",
+    "USER_ID_CLAIM": "social_account_id",
 }
 
 NAVER_CLIENT_ID = secrets["naver"]["client_id"]
@@ -177,3 +177,8 @@ KAKAO_REDIRECT_URL = secrets["kakao"]["redirect_url"]
 
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 GOOGLE_API_KEY = secrets["google1"]["api_key"]
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}

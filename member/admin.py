@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import SocialAccount, MemberInfo
+from .models import MemberInfo, SocialAccount
 
 
 class SocialAccountAdmin(UserAdmin):
@@ -10,7 +10,10 @@ class SocialAccountAdmin(UserAdmin):
     # 기본 필드 설정
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        ("Personal info", {"fields": ("provider", "provider_user_id", "profile_image")}),
+        (
+            "Personal info",
+            {"fields": ("provider", "provider_user_id", "profile_image")},
+        ),
         (
             "Permissions",
             {
@@ -30,7 +33,13 @@ class SocialAccountAdmin(UserAdmin):
             None,
             {
                 "classes": ("wide",),
-                "fields": ("email", "provider", "provider_user_id", "password1", "password2"),
+                "fields": (
+                    "email",
+                    "provider",
+                    "provider_user_id",
+                    "password1",
+                    "password2",
+                ),
             },
         ),
     )
