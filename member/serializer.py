@@ -1,4 +1,6 @@
 import json
+from xml.dom import ValidationErr
+
 from rest_framework import serializers
 from member.models import SocialAccount, MemberInfo
 
@@ -77,3 +79,21 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_profile_image(self, obj):
         return obj.social_account.profile_image if obj.social_account else None
+
+class SocialAccountInfoSerializer(serializers.Serializer):
+    is_active = serializers.ReadOnlyField()
+    class Meta:
+        provider = serializers.CharField()
+        email =  serializers.EmailField()
+        profile_image = serializers.URLField()
+        is_active = serializers.BooleanField()
+
+    def validaate_provide(self, value):
+        if not value in ["kakao", "naver"]:
+            raise serializers.ValidationError("Invalid provider")
+        return value
+
+    def validate_email(self, value):
+        if not value:
+            raise serializers.ValidationError("invalid email")
+        return value

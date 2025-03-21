@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 
 from config import settings
 from member.models import SocialAccount
+from member.serializer import SocialAccountInfoSerializer
 
 
 class KakaoLoginCallback(APIView):
@@ -20,13 +21,10 @@ class KakaoLoginCallback(APIView):
         if "error" in member_info:
             return Response(member_info, status=500)
         social_account = self.get_or_create_social_account(member_info)
-        social_account_data = {
-            "provider": social_account.provider,
-            "email": social_account.email,
-            "profile_image": social_account.profile_image,
-            "is_active": social_account.is_active,
-        }
-        return Response(social_account_data, status=200)
+        serializer = SocialAccountInfoSerializer(social_account)
+        if serializer.is_valid():
+            return Response(serializer.data, status= 200)
+        return Response(serializer.errors, status=400)
 
     def get_access_kakao_token(self, code):
         url = "https://kauth.kakao.com/oauth/token"
@@ -87,13 +85,10 @@ class NaverLoginCallback(APIView):
         if "error" in member_info:
             return Response(member_info, status=500)
         social_account = self.get_or_create_social_account(member_info)
-        social_account_data = {
-            "provider": social_account.provider,
-            "email": social_account.email,
-            "profile_image": social_account.profile_image,
-            "is_active": social_account.is_active,
-        }
-        return Response(social_account_data, status=200)
+        serializer = SocialAccountInfoSerializer(social_account)
+        if serializer.is_valid():
+            return Response(serializer.data, status=200)
+        return Response(serializer.errors, status=400)
 
     def get_access_naver_token(self, code):
         url = "https://nid.naver.com/oauth2.0/token"

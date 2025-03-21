@@ -1,3 +1,5 @@
+import copy
+
 from django.contrib.auth import get_user_model, login
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView, Response
@@ -19,31 +21,28 @@ class CreateMemberInfo(APIView):
     def post(self, request):
         email = request.data.get("email")
         social_account = SocialAccount.objects.filter(email=email).first()
-        nickname = request.data.get("nickname", None)
-        introduce = request.data.get("introduce", None)
-        favorite_genre = request.data.get("favorite_genre", None)
-        if favorite_genre and not isinstance(favorite_genre, list):
-            favorite_genre = [favorite_genre]
         if not social_account:
             return Response({"error": "소셜 계정을 찾을 수 없습니다"}, 400)
-        member_info = self.create_member_info(
-            social_account,
-            nickname=nickname,
-            introduce=introduce,
-            favorite_genre=favorite_genre,
-        )
-        if isinstance(member_info, dict):  # serializer.errors가 반환된 경우
-            return Response({"errors": member_info}, status=400)
+        data = copy.deepcopy(request.data)
+        data['social_account'] = social_account
+        serializer = MemberInfoSerializer(data=data)
+        if  not serializer.is_valid():
+            return Response(serializer.errors, status=400)
         social_account.is_active = True
         social_account.save()
-        login(request, social_account)
         refresh = RefreshToken.for_user(social_account)
         return Response(
             {
                 "message": "Successfully logined",
                 "access_token": str(refresh.access_token),
                 "refresh_token": str(refresh),
-                "user": social_account,
+                "user": {
+                    "email":serializer.data["email"],
+                    "profile_image":social_account.profile_image,
+                    "nickname" : serializer.data["nickname"],
+                    "introduce": serializer.data["introduce"],
+                    "favorite_genre": serializer.data["favorite_genre"],
+                },
             }
         )
 
@@ -73,8 +72,6 @@ class Login(APIView):
             "social_account": member_info.social_account,
             "nickname": member_info.nickname,
         }
-
-        login(request, member_info.social_account)  # backend 명시적으로 지정 필요 가능성 있음
         refresh = RefreshToken.for_user(member_info.social_account)
 
         return Response(
@@ -113,7 +110,7 @@ class MemberMypageView(APIView):
 
     def patch(self, request, member_id):
         social_account = request.user.social_account
-        member_info = MemberInfo.objects.filter(social_account=social_account)
+        member_info = MemberInfo.objects.filter(social_account=social_account).first()
         serializer = MemberInfoSerializer(member_info, data=request.data, partial=True)
 
         if not serializer.is_valid():
@@ -130,6 +127,6 @@ class MemberMypageView(APIView):
 
 class MemberProfileView(APIView):
     def get(self, request, member_id):
-        member_info = MemberInfo.objects.filter(social_account=request.user.socNial_account)
+        member_info = MemberInfo.objects.filter(social_account=request.user.social_account).first()
         serializer = ProfileSerializer(member_info)
         return Response(serializer.data, status=200)
