@@ -4,8 +4,9 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
-
+from django.urls import reverse
 from diary.models import Diary
+from member.models import MemberInfo
 
 User = get_user_model()
 
@@ -26,7 +27,14 @@ class DiaryTests(APITestCase):
         self.nickname = "testnickname"
 
         self.user = User.objects.create_user(
-            email=self.email, password=self.password, nickname=self.nickname
+            email=self.email,
+            provider="test_provider",
+            provider_user_id="test_id",
+            password=self.password
+        )
+        MemberInfo.objects.create(
+            social_account=self.user,
+            nickname=self.nickname
         )
 
         self.client.force_authenticate(user=self.user)
@@ -141,6 +149,30 @@ class DiaryTests(APITestCase):
         self.assertIn("data", response.data)
         self.assertEqual(response.data["data"]["diary_id"], diary_id)
         print("🥳 일기 조회 테스트 통과")
+
+    def test_get_diary_list(self):
+
+        Diary.objects.create(
+            member=self.user,
+            diary_title="추가 일기1",
+            content="내용1" * 10,
+            moods=["기쁨"],
+            created_at=datetime.date.today() - datetime.timedelta(days=1),
+        )
+        Diary.objects.create(
+            member=self.user,
+            diary_title="추가 일기2",
+            content="내용2" * 10,
+            moods=["슬픔"],
+            created_at=datetime.date.today() - datetime.timedelta(days=2),
+        )
+
+        url = reverse('diary:diary-main')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], "일기 날짜 데이터 불러오기 성공.")
+        self.assertEqual(len(response.data['data']),3)
+        print("🥳 일기 목록 조회 테스트 통과")
 
     def test_search_diary(self):
         """일기 검색 테스트"""

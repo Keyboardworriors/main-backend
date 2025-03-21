@@ -15,7 +15,15 @@ class SocialAccountManager(BaseUserManager):
     커스텀 유저 모델 관리자
     """
 
-    def create_user(self, email, provider, provider_user_id, profile_image=None, password=None, **extra_fields):
+    def create_user(
+        self,
+        email,
+        provider,
+        provider_user_id,
+        profile_image=None,
+        password=None,
+        **extra_fields,
+    ):
         if not email:
             raise ValueError("The Email field must be set")
         email = self.normalize_email(email)
@@ -34,7 +42,9 @@ class SocialAccountManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, provider, provider_user_id, password=None, **extra_fields):
+    def create_superuser(
+        self, email, provider, provider_user_id, password=None, **extra_fields
+    ):
         """
         슈퍼유저 생성 메서드
         """
@@ -42,7 +52,9 @@ class SocialAccountManager(BaseUserManager):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
 
-        return self.create_user(email, provider, provider_user_id, password=password, **extra_fields)
+        return self.create_user(
+            email, provider, provider_user_id, password=password, **extra_fields
+        )
 
 
 # 소셜 계정을 기본 User 모델로 사용
