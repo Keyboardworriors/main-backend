@@ -4,19 +4,23 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-
 YOUTUBE_API_KEY = settings.YOUTUBE_API_KEY
 youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
+
 
 # Genai 통해 받은 음악 리스트를 유튜브에 검색해 정보 반환
 def get_youtube_info(title, artist):
     query = f"{title} {artist} official"  # 검색어 설정
-    response = youtube.search().list(
-        q=query,
-        part="snippet",
-        type="video",
-        maxResults=1,
-    ).execute()
+    response = (
+        youtube.search()
+        .list(
+            q=query,
+            part="snippet",
+            type="video",
+            maxResults=1,
+        )
+        .execute()
+    )
 
     items = response.get("items", [])
     if items:
@@ -31,7 +35,6 @@ def get_youtube_info(title, artist):
             "embedUrl": f"https://www.youtube.com/watch?v={video_id}",
         }
     return None
-
 
 
 class MusicRecommendView(APIView):
