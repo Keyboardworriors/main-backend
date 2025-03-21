@@ -59,33 +59,34 @@ class GetMoods(APIView):
 
         return generated_text
 
-    def recommend_music(moods, favorite_genre):
-        # 프롬프트 작성
-        prompt = f"""
-            사용자의 감정은 다음과 같습니다: {', '.join(moods)}
-            사용자가 선호하는 음악 장르는 {favorite_genre}입니다.
 
-            사용자의 감정과 선호 장르에 어울리는 음악을 3곡 추천해주세요.
-            각 음악의 제목과 가수만 알려주세요.
-            다음 형식으로 출력해주세요:
+def recommend_music(moods, favorite_genre):
+    # 프롬프트 작성
+    prompt = f"""
+        사용자의 감정은 다음과 같습니다: {', '.join(moods)}
+        사용자가 선호하는 음악 장르는 {favorite_genre}입니다.
 
-            제목 - 가수
-            제목 - 가수
-            제목 - 가수
-            """
+        사용자의 감정과 선호 장르에 어울리는 음악을 3곡 추천해주세요.
+        각 음악의 제목과 가수만 알려주세요.
+        다음 형식으로 출력해주세요:
 
-        # 모델 불러오기
-        model = genai.GenerativeModel("gemini-2.0-flash")
+        제목 - 가수
+        제목 - 가수
+        제목 - 가수
+        """
 
-        # 음악 추천 요청
-        response = model.generate_content(prompt)
+    # 모델 불러오기
+    model = genai.GenerativeModel("gemini-2.0-flash")
 
-        # 출력 결과 정리
-        generated_text = response.text.strip()
+    # 음악 추천 요청
+    response = model.generate_content(prompt)
 
-        recommendations = []
-        for line in generated_text.splitlines():
-            title, artist = line.split(" - ")
-            recommendations.append({"title": title, "artist": artist})
+    # 출력 결과 정리
+    generated_text = response.text.strip()
 
-        return recommendations
+    recommendations = []
+    for line in generated_text.splitlines():
+        title, artist = line.split(" - ")
+        recommendations.append({"title": title, "artist": artist})
+
+    return recommendations
