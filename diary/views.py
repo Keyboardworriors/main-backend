@@ -38,7 +38,7 @@ class DiaryDetailView(APIView):
     def get(self, request, diary_id=None):
         if diary_id:
             diary = get_object_or_404(
-                Diary, diary_id=diary_id, member=request.user
+                Diary, diary_id=diary_id, member=request.user.social_account
             )
             serializer = DiarySerializer(diary)
             return Response(
