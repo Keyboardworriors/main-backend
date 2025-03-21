@@ -15,12 +15,9 @@ class OAuthViewsTest(TestCase):
     @patch("member.views.requests.post")
     @patch("member.views.requests.get")
     def test_kakao_login_callback(self, mock_get, mock_post):
-        # Mock the token response
         mock_post.return_value = Mock(
             status_code=200, json=lambda: {"access_token": "fake_access_token"}
         )
-
-        # Mock the user info response
         mock_get.return_value = Mock(
             status_code=200,
             json=lambda: {
@@ -44,12 +41,9 @@ class OAuthViewsTest(TestCase):
     @patch("member.views.requests.post")
     @patch("member.views.requests.get")
     def test_naver_login_callback(self, mock_get, mock_post):
-        # Mock the token response
         mock_post.return_value = Mock(
             status_code=200, json=lambda: {"access_token": "fake_access_token"}
         )
-
-        # Mock the user info response
         mock_get.return_value = Mock(
             status_code=200,
             json=lambda: {

@@ -2,9 +2,10 @@ import datetime
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
-from django.urls import reverse
+
 from diary.models import Diary
 from member.models import MemberInfo
 
@@ -30,11 +31,10 @@ class DiaryTests(APITestCase):
             email=self.email,
             provider="test_provider",
             provider_user_id="test_id",
-            password=self.password
+            password=self.password,
         )
         MemberInfo.objects.create(
-            social_account=self.user,
-            nickname=self.nickname
+            social_account=self.user, nickname=self.nickname
         )
 
         self.client.force_authenticate(user=self.user)
@@ -167,11 +167,13 @@ class DiaryTests(APITestCase):
             created_at=datetime.date.today() - datetime.timedelta(days=2),
         )
 
-        url = reverse('diary:diary-main')
+        url = reverse("diary:diary-main")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['message'], "일기 날짜 데이터 불러오기 성공.")
-        self.assertEqual(len(response.data['data']),3)
+        self.assertEqual(
+            response.data["message"], "일기 날짜 데이터 불러오기 성공."
+        )
+        self.assertEqual(len(response.data["data"]), 3)
         print("🥳 일기 목록 조회 테스트 통과")
 
     def test_search_diary(self):
