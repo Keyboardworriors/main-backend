@@ -35,7 +35,7 @@ class DiaryDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     # 특정 일기 조회
-    def get(self, request, diary_id=None):
+    def get(self, request, diary_id):
         if diary_id:
             diary = get_object_or_404(
                 Diary, diary_id=diary_id, member=request.user
@@ -58,7 +58,7 @@ class DiaryDetailView(APIView):
         )
 
     # 특정 일기 삭제
-    def delete(self, request, diary_id=None):
+    def delete(self, request, diary_id):
         diary = get_object_or_404(Diary, diary_id=diary_id, member=request.user)
         if diary.member != request.user:
             return Response(
@@ -75,17 +75,17 @@ class DiaryDetailView(APIView):
         )
 
 
+# 일기 작성
 class DiaryCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
-    # 오늘 날짜 일기 작성
     def post(self, request):
-        print("request.data", request.data)
         serializer = DiarySerializer(
             data=request.data, context={"request": request}
         )
         if serializer.is_valid():
-            serializer.save(member=request.user)
+            created_at = request.data.get("created_at", datetime.date.today())
+            serializer.save(member=request.user, created_at=created_at)
             return Response(
                 {
                     "message": "Successfully created diary.",  # 일기 작성 성공
@@ -94,76 +94,6 @@ class DiaryCreateView(APIView):
                 status=status.HTTP_201_CREATED,
             )
         # 유효성 검증 실패 시 예외 처리 추가
-        return Response(
-            {"error": "invalid_request", "message": serializer.errors},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-
-class DiaryCustomDateCreateView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    # 작성일과 저장되는 일기날짜가 다를때
-    def post(self, request):
-        serializer = DiarySerializer(data=request.data)
-        if serializer.is_valid():
-            created_at = request.data.get("created_at", None)
-
-            # 날짜 없을때
-            if not created_at:
-                return Response(
-                    {
-                        "error": "invalid_request",
-                        "message": "작성날짜(created_at)를 입력해주세요.",
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            # 날짜형식 검증 (YYYY-MM-DD)
-            try:
-                created_date = datetime.datetime.strptime(
-                    created_at, "%Y-%m-%d"
-                ).date()
-            except ValueError:
-                return Response(
-                    {
-                        "error": "invalid_date_format",
-                        "meassage": "날짜 형식이 잘못되었습니다. (형식: YYYY-MM-DD)",
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # 미래 날짜 작성 불가
-            today = datetime.date.today()
-            if created_date > today:
-                return Response(
-                    {
-                        "error": "future_date_not_allowed",
-                        "message": "미래의 날짜에는 일기를 작성할 수 없습니다.",
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # 하루에 한개 작성체크(중복 방지)
-            if Diary.objects.filter(
-                member=request.user, created_at__date=created_date
-            ).exists():
-                return Response(
-                    {
-                        "error": "already_exists",
-                        "message": "해당 날짜에 이미 일기가 존재합니다.",
-                    },
-                    status=status.HTTP_409_CONFLICT,
-                )
-
-            # 저장
-            serializer.save(member=request.user, created_at=created_date)
-            return Response(
-                {
-                    "message": "Successfully created diary.",
-                    "data": serializer.data,
-                },
-                status=status.HTTP_201_CREATED,
-            )
         return Response(
             {"error": "invalid_request", "message": serializer.errors},
             status=status.HTTP_400_BAD_REQUEST,
