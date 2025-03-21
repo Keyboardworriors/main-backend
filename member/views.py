@@ -130,6 +130,6 @@ class MemberMypageView(APIView):
 
 class MemberProfileView(APIView):
     def get(self, request, member_id):
-        member_info = MemberInfo.objects.filter(social_account=request.user.social_account)
+        member_info = MemberInfo.objects.filter(social_account=request.user.socNial_account)
         serializer = ProfileSerializer(member_info)
         return Response(serializer.data, status=200)
