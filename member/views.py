@@ -115,7 +115,7 @@ class MemberMypageView(APIView):
         serializer = SocialAccountSerializer(member_info)
         return Response(serializer.data, status=200)
 
-    def patch(self, request, member_id):
+    def patch(self, request):
         social_account = request.user.social_account
         member_info = MemberInfo.objects.filter(
             social_account=social_account
@@ -129,7 +129,7 @@ class MemberMypageView(APIView):
         serializer.save()
         return Response(serializer.data, status=200)
 
-    def delete(self, request, member_id):
+    def delete(self, request):
         social_account = request.user.social_account
 
         social_account.delete()
@@ -137,7 +137,7 @@ class MemberMypageView(APIView):
 
 
 class MemberProfileView(APIView):
-    def get(self, request, member_id):
+    def get(self, request):
         member_info = MemberInfo.objects.filter(
             social_account=request.user.social_account
         ).first()
