@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+import diary
 from diary.models import Diary
 from diary.serializers import DiarySerializer
 
@@ -16,16 +17,19 @@ class DiaryListView(APIView):
 
     # 메인페이지에서의 일기 조회
     def get(self, request):
-        # 일기 날짜 리스트만 조회
-        diaries = Diary.objects.filter(member=request.user).values_list(
-            "created_at", flat=True
+        # 일기 날짜
+        all_diary = Diary.objects.filter(member=request.user.social_account_id).values(
+            "diary_id","created_at"
         )
-        diary_dates = [diary.strftime("%Y-%m-%d") for diary in diaries if diary]
+        diary_data = [{
+            "date" : diary["created_at"].strftime("%Y-%m-%d"),
+            "diary_id" : str(diary["diary_id"]),}
+            for diary in all_diary]
 
         return Response(
             {
                 "message": "일기 날짜 데이터 불러오기 성공.",
-                "data": diary_dates,
+                "data": diary_data,
             },
             status=status.HTTP_200_OK,
         )
@@ -38,7 +42,7 @@ class DiaryDetailView(APIView):
     def get(self, request, diary_id):
         if diary_id:
             diary = get_object_or_404(
-                Diary, diary_id=diary_id, member=request.user.social_account
+                Diary, diary_id=diary_id, member=request.user.social_account_id
             )
             serializer = DiarySerializer(diary)
             return Response(
@@ -59,15 +63,8 @@ class DiaryDetailView(APIView):
 
     # 특정 일기 삭제
     def delete(self, request, diary_id):
-        diary = get_object_or_404(Diary, diary_id=diary_id, member=request.user)
-        if diary.member != request.user:
-            return Response(
-                {
-                    "error": "forbidden",
-                    "message": "권한이 없습니다.",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        diary = get_object_or_404(Diary, diary_id=diary_id, member=request.user.social_account_id)
+
         diary.delete()
         return Response(
             {"message": "Successfully deleted."},
@@ -104,10 +101,7 @@ class DiaryCreateView(APIView):
 class DiarySearchView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(
-        self,
-        request,
-    ):
+    def post(self,request):
         q = request.data.get("q", "").strip()
         # 검색어 없으면
         if not q:
