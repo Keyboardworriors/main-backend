@@ -28,7 +28,7 @@ def get_youtube_info(title,artist):
         "embedUrl": f"https://www.youtube.com/embed/{music['videoId']}",
     }
 
-class MusicRedommendView(APIView):
+class MusicRecommendView(APIView):
     # 추천된 음악 정보 리스트 반환
     def post(self,request):
         recommendations = request.data.get('recommendations',[])
