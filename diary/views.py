@@ -17,12 +17,12 @@ class DiaryListView(APIView):
 
     # 메인페이지에서의 일기 조회
     def get(self, request):
-        # 일기 날짜 리스트만 조회
-        all_diary = Diary.objects.filter(member=request.user).values(
+        # 일기 날짜
+        all_diary = Diary.objects.filter(member=request.user.social_account_id).values(
             "diary_id","created_at"
         )
         diary_data = [{
-            "data" : diary["created_at"].strftime("%Y-%m-%d"),
+            "date" : diary["created_at"].strftime("%Y-%m-%d"),
             "diary_id" : str(diary["diary_id"]),}
             for diary in all_diary]
 
@@ -42,7 +42,7 @@ class DiaryDetailView(APIView):
     def get(self, request, diary_id):
         if diary_id:
             diary = get_object_or_404(
-                Diary, diary_id=diary_id, member=request.user.social_account
+                Diary, diary_id=diary_id, member=request.user.social_account_id
             )
             serializer = DiarySerializer(diary)
             return Response(
@@ -101,10 +101,7 @@ class DiaryCreateView(APIView):
 class DiarySearchView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(
-        self,
-        request,
-    ):
+    def post(self,request):
         q = request.data.get("q", "").strip()
         # 검색어 없으면
         if not q:
