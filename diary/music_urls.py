@@ -1,9 +1,9 @@
 from django.urls import path
 
-from diary.views_music import MusicRecommendationView
+from diary.views_music import MusicRedommendView
 
 app_name = "music"
 
 urlpatterns = [
-    path("recommend", MusicRecommendationView.as_view(), name="music-recommend")
+    path("recommend", MusicRedommendView.as_view(), name="music-recommend")
 ]
