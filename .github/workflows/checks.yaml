@@ -46,9 +46,6 @@ jobs:
         run: |
           echo '${{ secrets.SECRETS_JSON }}' > $GITHUB_WORKSPACE/secrets.json
 
-      - name: Debug secrets.json content
-        run: cat $GITHUB_WORKSPACE/secrets.json
-
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
