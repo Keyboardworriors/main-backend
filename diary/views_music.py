@@ -7,8 +7,10 @@ from rest_framework.views import APIView
 from ytmusicapi import YTMusic
 
 YOUTUBE_API_KEY = settings.YOUTUBE_API_KEY
-youtube = build("youtube", "v3", developerKey="YOUTUBE_API_KEY")
-ytmusic = YTMusic()
+youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
+
+
+# ytmusic = YTMusic()
 
 
 # Genai 통해 받은 음악 리스트를 유튜브에 검색해 정보 반환
