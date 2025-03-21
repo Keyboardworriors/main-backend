@@ -24,10 +24,7 @@ class KakaoLoginCallback(APIView):
             "provider": social_account.provider,
             "email": social_account.email,
             "profile_image": social_account.profile_image,
-            "is_registered": social_account.is_registered,
-            "member_id": (
-                str(social_account.member.id) if social_account.member else None
-            ),
+            "is_active": social_account.is_active,
         }
         return Response(social_account_data, status=200)
 
@@ -71,7 +68,6 @@ class KakaoLoginCallback(APIView):
             defaults={
                 "email": email,
                 "profile_image": profile_image,
-                "is_registered": False,
             },
         )
         return social_account
@@ -95,10 +91,7 @@ class NaverLoginCallback(APIView):
             "provider": social_account.provider,
             "email": social_account.email,
             "profile_image": social_account.profile_image,
-            "is_registered": social_account.is_registered,
-            "member_id": (
-                str(social_account.member.id) if social_account.member else None
-            ),
+            "is_active": social_account.is_active,
         }
         return Response(social_account_data, status=200)
 
@@ -139,7 +132,6 @@ class NaverLoginCallback(APIView):
             defaults={
                 "email": email,
                 "profile_image": profile_image,
-                "is_registered": False,
             },
         )
         return social_account
