@@ -7,7 +7,7 @@ from django.db import models
 # 음악정보 저장 테이블
 class Music(models.Model):
     music_id = models.AutoField(primary_key=True)
-    videoId = models.CharField(
+    video_id = models.CharField(
         max_length=50, unique=True, default=""
     )  # youtube 고유 video id
     title = models.CharField(max_length=100)
@@ -25,7 +25,7 @@ class Diary(models.Model):
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
     )
     member = models.ForeignKey(
-        "member.Member", on_delete=models.CASCADE, related_name="diaries"
+        "member.SocialAccount", on_delete=models.CASCADE, related_name="diaries"
     )
     diary_title = models.CharField(max_length=100)
     content = models.TextField()

@@ -1,15 +1,16 @@
+import copy
+
 import requests
 from django.contrib.auth import get_user_model, login
 from django.forms.models import model_to_dict
-from django.shortcuts import get_object_or_404
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView, Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from diary import serializers
-from member.models import Member, SocialAccount
+from member.models import MemberInfo, SocialAccount
 from member.serializer import (
-    MemberSerializer,
+    MemberInfoSerializer,
     ProfileSerializer,
     SocialAccountSerializer,
 )
@@ -17,57 +18,52 @@ from member.serializer import (
 User = get_user_model()
 
 
-class MemberRegister(APIView):
+class CreateMemberInfo(APIView):
     def get(self, request):
         return Response(status=200)
 
     def post(self, request):
-        nickname = request.data.get("nickname", None)
-        introduce = request.data.get("introduce", None)
-        favorite_genre = request.data.get("favorite_genre", None)
-
-        if favorite_genre and not isinstance(favorite_genre, list):
-            favorite_genre = [favorite_genre]
         email = request.data.get("email")
         social_account = SocialAccount.objects.filter(email=email).first()
         if not social_account:
             return Response({"error": "소셜 계정을 찾을 수 없습니다"}, 400)
-        member = self.create_member(
-            social_account,
-            nickname=nickname,
-            introduce=introduce,
-            favorite_genre=favorite_genre,
-        )
-        if isinstance(member, dict):  # serializer.errors가 반환된 경우
-            return Response({"errors": member}, status=400)
-        social_account.member = member
-        social_account.is_registered = True
-        social_account.save()
-        member_data = {
-            "member_id": str(member.member_id),
-            "email": member.email,
-        }
-        login(request, member)
-        refresh = RefreshToken.for_user(member)
-        return Response(
-            {
-                "message": "Successfully logined",
-                "access_token": str(refresh.access_token),
-                "refresh_token": str(refresh),
-                "user": member_data,
-            }
-        )
+        data = copy.deepcopy(request.data)
+        data["social_account"] = str(social_account)
 
-    def create_member(
+        serializer = MemberInfoSerializer(data=data)
+        if serializer.is_valid():
+            social_account.is_active = True
+            social_account.save()
+            serializer.save()
+
+            refresh = RefreshToken.for_user(social_account)
+            return Response(
+                {
+                    "message": "Successfully logined",
+                    "access_token": str(refresh.access_token),
+                    "refresh_token": str(refresh),
+                    "user": {
+                        "email": email,
+                        "profile_image": social_account.profile_image,
+                        "nickname": serializer.data["nickname"],
+                        "introduce": serializer.data.get("introduce"),
+                        "favorite_genre": serializer.data.get("favorite_genre"),
+                    },
+                },
+                status=status.HTTP_200_OK,
+            )
+        return Response(serializer.errors, status=400)
+
+    def create_member_info(
         self, social_account, nickname, introduce, favorite_genre
     ):
         data = {
-            "email": social_account.email,  # social_account에서 이메일 가져오기
             "nickname": nickname,
             "introduce": introduce,
             "favorite_genre": favorite_genre,
+            "social_account": social_account,
         }
-        serializer = MemberSerializer(data=data)
+        serializer = MemberInfoSerializer(data=data)
         if serializer.is_valid():
             return serializer.save()
         return serializer.errors
@@ -76,25 +72,37 @@ class MemberRegister(APIView):
 class Login(APIView):
     def post(self, request):
         email = request.data.get("email")
-        social_account = SocialAccount.objects.filter(email=email).first()
-        if not social_account.member:
-            return Response({"error": "회원가입이 필요합니다"}, status=404)
-        member = social_account.member
-        member_data = {
-            "member_id": str(member.member_id),
-            "email": member.email,
-            "profile_image": social_account.profile_image,
-        }
+        if email is None:
+            return Response({"error": "Invalid eamil"}, 400)
+        member_info = MemberInfo.objects.filter(
+            social_account__email=email
+        ).first()
 
-        login(request, member)  # backend 명시적으로 지정 필요 가능성 있음
-        refresh = RefreshToken.for_user(member)
+        if not member_info.social_account.is_active:
+            return Response(
+                {"error": "회원 정보 등록이 필요합니다"}, status=404
+            )
+        member_data = {
+            "social_account": member_info.social_account,
+            "nickname": member_info.nickname,
+        }
+        refresh = RefreshToken.for_user(member_info.social_account)
+        social_account_serializer = SocialAccountSerializer(
+            member_info.social_account
+        )
 
         return Response(
             {
                 "message": "Successfully logged in",
                 "access_token": str(refresh.access_token),
                 "refresh_token": str(refresh),
-                "user": member_data,
+                "user": {
+                    "email": social_account_serializer.data.get("email"),
+                    "profile_image": social_account_serializer.data.get(
+                        "profile_image"
+                    ),
+                    "nickname": member_info.nickname,
+                },
             },
             status=200,
         )
@@ -118,28 +126,43 @@ class Logout(APIView):
 class MemberMypageView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, member_id):
-        social_account = get_object_or_404(SocialAccount, member=member_id)
-        serializer = SocialAccountSerializer(social_account)
+    def get(self, request):
+        member_info = MemberInfo.objects.filter(
+            social_account=request.user
+        ).first()
+        if not member_info:
+            return Response({"error": "Member info not found"}, status=404)
+
+        serializer = MemberInfoSerializer(member_info)
         return Response(serializer.data, status=200)
 
-    def patch(self, request, member_id):
-        member = get_object_or_404(User, member_id=member_id)
-        serializer = MemberSerializer(member, data=request.data, partial=True)
+    def patch(self, request):
+        social_account = request.user
+        member_info = MemberInfo.objects.filter(
+            social_account=social_account
+        ).first()
+        serializer = MemberInfoSerializer(
+            member_info, data=request.data, partial=True
+        )
 
         if not serializer.is_valid():
             return Response({"errors": serializer.errors}, status=400)
         serializer.save()
         return Response(serializer.data, status=200)
 
-    def delete(self, request, member_id):
-        member = get_object_or_404(User, member_id=member_id)
-        member.delete()
+    def delete(self, request):
+        social_account = request.user
+
+        social_account.delete()
         return Response({"message": "Successfully deleted"}, status=200)
 
 
 class MemberProfileView(APIView):
-    def get(self, request, member_id):
-        member = get_object_or_404(SocialAccount, member=member_id)
-        serializer = ProfileSerializer(member)
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        member_info = MemberInfo.objects.filter(
+            social_account=request.user
+        ).first()
+        serializer = ProfileSerializer(member_info)
         return Response(serializer.data, status=200)

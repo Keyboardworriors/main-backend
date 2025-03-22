@@ -59,7 +59,6 @@ class GetMoods(APIView):
 
         return generated_text
 
-
     def recommend_music(moods, favorite_genre):
         """감정과 선호 장르에 따라 음악을 추천합니다."""
         # 프롬프트 작성

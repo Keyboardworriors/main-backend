@@ -38,9 +38,9 @@ else:
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
+SECRET_KEY = secrets[
     "SECRET_KEY"
-)  # or secrets.get("SECRET_KEY","django-insecure-px57&b8-(+ujqkq^$v$+85zzwcib7cm)7&qriv@-#2d6k*&j_z")
+]  # or secrets.get("SECRET_KEY","django-insecure-px57&b8-(+ujqkq^$v$+85zzwcib7cm)7&qriv@-#2d6k*&j_z")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -153,7 +153,7 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AUTH_USER_MODEL = "member.Member"
+AUTH_USER_MODEL = "member.SocialAccount"
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
@@ -162,8 +162,8 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "ROTATE_REFRESH_TOKENS": True,
     "ALGORITHM": "HS256",
-    "USER_ID_FIELD": "member_id",
-    "USER_ID_CLAIM": "member_id",
+    "USER_ID_FIELD": "social_account_id",
+    "USER_ID_CLAIM": "social_account_id",
 }
 
 NAVER_CLIENT_ID = secrets["naver"]["client_id"]
@@ -175,5 +175,10 @@ KAKAO_CLIENT_ID = secrets["kakao"]["client_id"]
 KAKAO_SECRET = secrets["kakao"]["secret"]
 KAKAO_REDIRECT_URL = secrets["kakao"]["redirect_url"]
 
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+YOUTUBE_API_KEY = secrets["youtube"]["api_key"]
 GOOGLE_API_KEY = secrets["google1"]["api_key"]
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}

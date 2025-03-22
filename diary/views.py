@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+import diary
 from diary.models import Diary
 from diary.serializers import DiarySerializer
 
@@ -16,16 +17,22 @@ class DiaryListView(APIView):
 
     # 메인페이지에서의 일기 조회
     def get(self, request):
-        # 일기 날짜 리스트만 조회
-        diaries = Diary.objects.filter(member=request.user).values_list(
-            "created_at", flat=True
-        )
-        diary_dates = [diary.strftime("%Y-%m-%d") for diary in diaries if diary]
+        # 일기 날짜
+        all_diary = Diary.objects.filter(
+            member=request.user.social_account_id
+        ).values("diary_id", "created_at")
+        diary_data = [
+            {
+                "date": diary["created_at"].strftime("%Y-%m-%d"),
+                "diary_id": str(diary["diary_id"]),
+            }
+            for diary in all_diary
+        ]
 
         return Response(
             {
                 "message": "일기 날짜 데이터 불러오기 성공.",
-                "data": diary_dates,
+                "data": diary_data,
             },
             status=status.HTTP_200_OK,
         )
@@ -35,10 +42,10 @@ class DiaryDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     # 특정 일기 조회
-    def get(self, request, diary_id=None):
+    def get(self, request, diary_id):
         if diary_id:
             diary = get_object_or_404(
-                Diary, diary_id=diary_id, member=request.user
+                Diary, diary_id=diary_id, member=request.user.social_account_id
             )
             serializer = DiarySerializer(diary)
             return Response(
@@ -58,16 +65,11 @@ class DiaryDetailView(APIView):
         )
 
     # 특정 일기 삭제
-    def delete(self, request, diary_id=None):
-        diary = get_object_or_404(Diary, diary_id=diary_id, member=request.user)
-        if diary.member != request.user:
-            return Response(
-                {
-                    "error": "forbidden",
-                    "message": "권한이 없습니다.",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
+    def delete(self, request, diary_id):
+        diary = get_object_or_404(
+            Diary, diary_id=diary_id, member=request.user.social_account_id
+        )
+
         diary.delete()
         return Response(
             {"message": "Successfully deleted."},
@@ -75,17 +77,17 @@ class DiaryDetailView(APIView):
         )
 
 
+# 일기 작성
 class DiaryCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
-    # 오늘 날짜 일기 작성
     def post(self, request):
-        print("request.data", request.data)
         serializer = DiarySerializer(
             data=request.data, context={"request": request}
         )
         if serializer.is_valid():
-            serializer.save(member=request.user)
+            created_at = request.data.get("created_at", datetime.date.today())
+            serializer.save(member=request.user, created_at=created_at)
             return Response(
                 {
                     "message": "Successfully created diary.",  # 일기 작성 성공
@@ -100,84 +102,11 @@ class DiaryCreateView(APIView):
         )
 
 
-class DiaryCustomDateCreateView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    # 작성일과 저장되는 일기날짜가 다를때
-    def post(self, request):
-        serializer = DiarySerializer(data=request.data)
-        if serializer.is_valid():
-            created_at = request.data.get("created_at", None)
-
-            # 날짜 없을때
-            if not created_at:
-                return Response(
-                    {
-                        "error": "invalid_request",
-                        "message": "작성날짜(created_at)를 입력해주세요.",
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            # 날짜형식 검증 (YYYY-MM-DD)
-            try:
-                created_date = datetime.datetime.strptime(
-                    created_at, "%Y-%m-%d"
-                ).date()
-            except ValueError:
-                return Response(
-                    {
-                        "error": "invalid_date_format",
-                        "meassage": "날짜 형식이 잘못되었습니다. (형식: YYYY-MM-DD)",
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # 미래 날짜 작성 불가
-            today = datetime.date.today()
-            if created_date > today:
-                return Response(
-                    {
-                        "error": "future_date_not_allowed",
-                        "message": "미래의 날짜에는 일기를 작성할 수 없습니다.",
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # 하루에 한개 작성체크(중복 방지)
-            if Diary.objects.filter(
-                member=request.user, created_at__date=created_date
-            ).exists():
-                return Response(
-                    {
-                        "error": "already_exists",
-                        "message": "해당 날짜에 이미 일기가 존재합니다.",
-                    },
-                    status=status.HTTP_409_CONFLICT,
-                )
-
-            # 저장
-            serializer.save(member=request.user, created_at=created_date)
-            return Response(
-                {
-                    "message": "Successfully created diary.",
-                    "data": serializer.data,
-                },
-                status=status.HTTP_201_CREATED,
-            )
-        return Response(
-            {"error": "invalid_request", "message": serializer.errors},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-
 # 일기 검색
 class DiarySearchView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(
-        self,
-        request,
-    ):
+    def post(self, request):
         q = request.data.get("q", "").strip()
         # 검색어 없으면
         if not q:
