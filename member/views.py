@@ -1,10 +1,11 @@
 import copy
-
+import requests
 from django.contrib.auth import get_user_model, login
+from django.forms.models import model_to_dict
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView, Response
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from rest_framework import status
 from member.models import MemberInfo, SocialAccount
 from member.serializer import (
     MemberInfoSerializer,
@@ -25,27 +26,30 @@ class CreateMemberInfo(APIView):
         if not social_account:
             return Response({"error": "소셜 계정을 찾을 수 없습니다"}, 400)
         data = copy.deepcopy(request.data)
-        data["social_account"] = social_account
+        data["social_account"] = str(social_account)
+
         serializer = MemberInfoSerializer(data=data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=400)
-        social_account.is_active = True
-        social_account.save()
-        refresh = RefreshToken.for_user(social_account)
-        return Response(
-            {
-                "message": "Successfully logined",
-                "access_token": str(refresh.access_token),
-                "refresh_token": str(refresh),
-                "user": {
-                    "email": serializer.data["email"],
-                    "profile_image": social_account.profile_image,
-                    "nickname": serializer.data["nickname"],
-                    "introduce": serializer.data["introduce"],
-                    "favorite_genre": serializer.data["favorite_genre"],
-                },
-            }
-        )
+        if serializer.is_valid():
+            social_account.is_active = True
+            social_account.save()
+            serializer.save()
+
+            refresh = RefreshToken.for_user(social_account)
+            return Response(
+                {
+                    "message": "Successfully logined",
+                    "access_token": str(refresh.access_token),
+                    "refresh_token": str(refresh),
+                    "user": {
+                        "email": email,
+                        "profile_image": social_account.profile_image,
+                        "nickname": serializer.data["nickname"],
+                        "introduce": serializer.data.get("introduce"),
+                        "favorite_genre": serializer.data.get("favorite_genre"),
+                    }
+                }, status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=400)
 
     def create_member_info(
         self, social_account, nickname, introduce, favorite_genre
@@ -65,6 +69,8 @@ class CreateMemberInfo(APIView):
 class Login(APIView):
     def post(self, request):
         email = request.data.get("email")
+        if email is None:
+            return Response({"error": "Invalid eamil"}, 400)
         member_info = MemberInfo.objects.filter(
             social_account__email=email
         ).first()
@@ -78,13 +84,20 @@ class Login(APIView):
             "nickname": member_info.nickname,
         }
         refresh = RefreshToken.for_user(member_info.social_account)
+        social_account_serializer = SocialAccountSerializer(
+            member_info.social_account)
 
         return Response(
             {
                 "message": "Successfully logged in",
                 "access_token": str(refresh.access_token),
                 "refresh_token": str(refresh),
-                "user": member_data,
+                "user": {
+                    "email": social_account_serializer.data.get("email"),
+                    "profile_image": social_account_serializer.data.get(
+                        "profile_image"),
+                    "nickname": member_info.nickname,
+                },
             },
             status=200,
         )
@@ -110,13 +123,16 @@ class MemberMypageView(APIView):
 
     def get(self, request):
         member_info = MemberInfo.objects.filter(
-            social_account=request.user.social_account
+            social_account=request.user
         ).first()
-        serializer = SocialAccountSerializer(member_info)
+        if not member_info:
+            return Response({"error": "Member info not found"}, status=404)
+
+        serializer = MemberInfoSerializer(member_info)
         return Response(serializer.data, status=200)
 
     def patch(self, request):
-        social_account = request.user.social_account
+        social_account = request.user
         member_info = MemberInfo.objects.filter(
             social_account=social_account
         ).first()
@@ -130,16 +146,18 @@ class MemberMypageView(APIView):
         return Response(serializer.data, status=200)
 
     def delete(self, request):
-        social_account = request.user.social_account
+        social_account = request.user
 
         social_account.delete()
         return Response({"message": "Successfully deleted"}, status=200)
 
 
 class MemberProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         member_info = MemberInfo.objects.filter(
-            social_account=request.user.social_account
+            social_account=request.user
         ).first()
         serializer = ProfileSerializer(member_info)
         return Response(serializer.data, status=200)

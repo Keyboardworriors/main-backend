@@ -83,7 +83,7 @@ class SocialAccount(AbstractBaseUser, PermissionsMixin):
         unique_together = ("provider", "provider_user_id")
 
     def __str__(self):
-        return f"{self.provider} - {self.email}"
+        return f"{self.social_account_id}"
 
 
 # 유저 추가 정보 테이블
