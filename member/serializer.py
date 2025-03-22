@@ -11,18 +11,18 @@ class SocialAccountSerializer(serializers.ModelSerializer):
         model = SocialAccount
         fields = ["email", "provider", "provider_user_id", "profile_image"]
 
-    def validated_email(self,value):
+    def validated_email(self, value):
         if not value:
             raise serializers.ValidationError("이메일을 입력하세요.")
         elif SocialAccount.objects.filter(email=value).exists():
             raise serializers.ValidationError("중복된 이메일입니다.")
 
 
-
 class MemberInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = MemberInfo
         fields = ["nickname", "introduce", "favorite_genre", "social_account"]
+
     def validate_nickname(self, value):
         if (
             self.instance
@@ -108,6 +108,6 @@ class SocialAccountInfoSerializer(serializers.Serializer):
         return value
 
     def validate_email(self, value):
-        if value is  None:
+        if value is None:
             raise serializers.ValidationError("invalid email")
         return value

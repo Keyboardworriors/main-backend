@@ -30,7 +30,9 @@ class KakaoLoginCallbackTestWithoutMock(TestCase):
             "id": 12345,
             "kakao_account": {
                 "email": "new_user@example.com",
-                "profile": {"profile_image_url": "http://example.com/image.jpg"},
+                "profile": {
+                    "profile_image_url": "http://example.com/image.jpg"
+                },
             },
         }
 
@@ -48,8 +50,14 @@ class KakaoLoginCallbackTestWithoutMock(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["provider"], "kakao")
         self.assertEqual(response.data["email"], "new_user@example.com")
-        self.assertEqual(response.data["profile_image"], "http://example.com/image.jpg")
-        self.assertTrue(SocialAccount.objects.filter(provider="kakao", provider_user_id="12345").exists())
+        self.assertEqual(
+            response.data["profile_image"], "http://example.com/image.jpg"
+        )
+        self.assertTrue(
+            SocialAccount.objects.filter(
+                provider="kakao", provider_user_id="12345"
+            ).exists()
+        )
 
     @responses.activate
     def test_kakao_login_success_existing_user(self):
@@ -59,11 +67,16 @@ class KakaoLoginCallbackTestWithoutMock(TestCase):
             "id": 12345,
             "kakao_account": {
                 "email": "existing_user@example.com",
-                "profile": {"profile_image_url": "http://example.com/image.jpg"},
+                "profile": {
+                    "profile_image_url": "http://example.com/image.jpg"
+                },
             },
         }
         SocialAccount.objects.create(
-            provider="kakao", provider_user_id="12345", email="existing_user@example.com", profile_image="http://example.com/image.jpg"
+            provider="kakao",
+            provider_user_id="12345",
+            email="existing_user@example.com",
+            profile_image="http://example.com/image.jpg",
         )
 
         responses.post(
@@ -80,10 +93,18 @@ class KakaoLoginCallbackTestWithoutMock(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["provider"], "kakao")
         self.assertEqual(response.data["email"], "existing_user@example.com")
-        self.assertEqual(response.data["profile_image"], "http://example.com/image.jpg")
-        self.assertTrue(SocialAccount.objects.filter(provider="kakao", provider_user_id="12345").exists())
         self.assertEqual(
-            SocialAccount.objects.get(provider="kakao", provider_user_id="12345").email,
+            response.data["profile_image"], "http://example.com/image.jpg"
+        )
+        self.assertTrue(
+            SocialAccount.objects.filter(
+                provider="kakao", provider_user_id="12345"
+            ).exists()
+        )
+        self.assertEqual(
+            SocialAccount.objects.get(
+                provider="kakao", provider_user_id="12345"
+            ).email,
             "existing_user@example.com",
         )
 
@@ -99,11 +120,18 @@ class KakaoLoginCallbackTestWithoutMock(TestCase):
         responses.post(
             "https://kauth.kakao.com/oauth/token",
             status=400,
-            json={"error": "invalid_grant", "error_description": "Authorization code expired"},
+            json={
+                "error": "invalid_grant",
+                "error_description": "Authorization code expired",
+            },
         )
         response = self.client.get(self.callback_url, {"code": code})
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        self.assertEqual(response.data["error"], "Failed to get Kakao access token")
+        self.assertEqual(
+            response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+        self.assertEqual(
+            response.data["error"], "Failed to get Kakao access token"
+        )
 
     @responses.activate
     def test_kakao_login_failure_get_member_info(self):
@@ -120,7 +148,9 @@ class KakaoLoginCallbackTestWithoutMock(TestCase):
             headers={"Authorization": f"Bearer {access_token}"},
         )
         response = self.client.get(self.callback_url, {"code": code})
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(
+            response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
         self.assertIn("Kakao User Info Error", response.data["error"])
 
     @responses.activate
@@ -131,7 +161,9 @@ class KakaoLoginCallbackTestWithoutMock(TestCase):
             "id": 12345,
             "kakao_account": {
                 "email": "existing_email@example.com",
-                "profile": {"profile_image_url": "http://example.com/image.jpg"},
+                "profile": {
+                    "profile_image_url": "http://example.com/image.jpg"
+                },
             },
         }
         SocialAccount.objects.create(
@@ -149,8 +181,10 @@ class KakaoLoginCallbackTestWithoutMock(TestCase):
         )
 
         response = self.client.get(self.callback_url, {"code": code})
-        self.assertEqual(response.status_code, 400 )
-        self.assertEqual(response.data["error"], "이미 해당 이메일이 존재합니다.")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.data["error"], "이미 해당 이메일이 존재합니다."
+        )
 
 
 @override_settings(
@@ -196,8 +230,14 @@ class NaverLoginCallbackTestWithoutMock(TestCase):
         self.assertEqual(response.data["provider"], "naver")
         self.assertEqual(response.data["provider_user_id"], "67890")
         self.assertEqual(response.data["email"], "new_user@naver.com")
-        self.assertEqual(response.data["profile_image"], "http://example.com/naver_image.jpg")
-        self.assertTrue(SocialAccount.objects.filter(provider="naver", provider_user_id="67890").exists())
+        self.assertEqual(
+            response.data["profile_image"], "http://example.com/naver_image.jpg"
+        )
+        self.assertTrue(
+            SocialAccount.objects.filter(
+                provider="naver", provider_user_id="67890"
+            ).exists()
+        )
 
     @responses.activate
     def test_naver_login_success_existing_user(self):
@@ -213,7 +253,10 @@ class NaverLoginCallbackTestWithoutMock(TestCase):
             },
         }
         SocialAccount.objects.create(
-            provider="naver", provider_user_id="67890", email="existing_user@naver.com", profile_image="http://example.com/naver_image.jpg"
+            provider="naver",
+            provider_user_id="67890",
+            email="existing_user@naver.com",
+            profile_image="http://example.com/naver_image.jpg",
         )
 
         responses.post(
@@ -230,10 +273,18 @@ class NaverLoginCallbackTestWithoutMock(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["provider"], "naver")
         self.assertEqual(response.data["email"], "existing_user@naver.com")
-        self.assertEqual(response.data["profile_image"], "http://example.com/naver_image.jpg")
-        self.assertTrue(SocialAccount.objects.filter(provider="naver", provider_user_id="67890").exists())
         self.assertEqual(
-            SocialAccount.objects.get(provider="naver", provider_user_id="67890").email,
+            response.data["profile_image"], "http://example.com/naver_image.jpg"
+        )
+        self.assertTrue(
+            SocialAccount.objects.filter(
+                provider="naver", provider_user_id="67890"
+            ).exists()
+        )
+        self.assertEqual(
+            SocialAccount.objects.get(
+                provider="naver", provider_user_id="67890"
+            ).email,
             "existing_user@naver.com",
         )
 
@@ -249,11 +300,18 @@ class NaverLoginCallbackTestWithoutMock(TestCase):
         responses.post(
             "https://nid.naver.com/oauth2.0/token",
             status=400,
-            json={"error": "invalid_request", "error_description": "The authorization code is invalid."},
+            json={
+                "error": "invalid_request",
+                "error_description": "The authorization code is invalid.",
+            },
         )
         response = self.client.get(self.callback_url, {"code": code})
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        self.assertEqual(response.data["error"], "Failed to get Naver access token")
+        self.assertEqual(
+            response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+        self.assertEqual(
+            response.data["error"], "Failed to get Naver access token"
+        )
 
     @responses.activate
     def test_naver_login_failure_get_member_info(self):
@@ -270,5 +328,7 @@ class NaverLoginCallbackTestWithoutMock(TestCase):
             headers={"Authorization": f"Bearer {access_token}"},
         )
         response = self.client.get(self.callback_url, {"code": code})
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(
+            response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
         self.assertIn("Naver User Info Error", response.data["error"])

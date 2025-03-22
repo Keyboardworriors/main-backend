@@ -1,11 +1,13 @@
 import copy
+
 import requests
 from django.contrib.auth import get_user_model, login
 from django.forms.models import model_to_dict
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView, Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status
+
 from member.models import MemberInfo, SocialAccount
 from member.serializer import (
     MemberInfoSerializer,
@@ -46,8 +48,9 @@ class CreateMemberInfo(APIView):
                         "nickname": serializer.data["nickname"],
                         "introduce": serializer.data.get("introduce"),
                         "favorite_genre": serializer.data.get("favorite_genre"),
-                    }
-                }, status=status.HTTP_200_OK
+                    },
+                },
+                status=status.HTTP_200_OK,
             )
         return Response(serializer.errors, status=400)
 
@@ -85,7 +88,8 @@ class Login(APIView):
         }
         refresh = RefreshToken.for_user(member_info.social_account)
         social_account_serializer = SocialAccountSerializer(
-            member_info.social_account)
+            member_info.social_account
+        )
 
         return Response(
             {
@@ -95,7 +99,8 @@ class Login(APIView):
                 "user": {
                     "email": social_account_serializer.data.get("email"),
                     "profile_image": social_account_serializer.data.get(
-                        "profile_image"),
+                        "profile_image"
+                    ),
                     "nickname": member_info.nickname,
                 },
             },

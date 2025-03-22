@@ -7,26 +7,33 @@ from rest_framework.views import APIView
 
 from config import settings
 from member.models import SocialAccount
-from member.serializer import SocialAccountInfoSerializer, \
-    SocialAccountSerializer
+from member.serializer import (
+    SocialAccountInfoSerializer,
+    SocialAccountSerializer,
+)
 
 
 class KakaoLoginCallback(APIView):
     def get(self, request):
         code = request.GET.get("code")
         if not code:
-            return Response({"error": "Code is missing"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Code is missing"}, status=status.HTTP_400_BAD_REQUEST
+            )
         access_token = self.get_access_kakao_token(code)
         if not access_token:
             return Response(
-                {"error": "Failed to get Kakao access token"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "Failed to get Kakao access token"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         member_info = self.get_member_info_kakao(access_token)
         if "error" in member_info:
-            return Response(member_info, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                member_info, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         social_account = self.get_or_create_social_account(member_info)
         if social_account.get("error"):
-            return Response({"error":social_account.get("error")}, status=400)
+            return Response({"error": social_account.get("error")}, status=400)
         serializer = SocialAccountInfoSerializer(data=social_account)
         if serializer.is_valid():
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -77,7 +84,7 @@ class KakaoLoginCallback(APIView):
                 provider_user_id=provider_user_id,
                 email=email,
                 profile_image=profile_image,
-                is_active=False
+                is_active=False,
             )
 
         social_account_dict = model_to_dict(social_account)
@@ -88,15 +95,20 @@ class NaverLoginCallback(APIView):
     def get(self, request):
         code = request.GET.get("code")
         if not code:
-            return Response({"error": "missing code"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "missing code"}, status=status.HTTP_400_BAD_REQUEST
+            )
         access_token = self.get_access_naver_token(code)
         if not access_token:
             return Response(
-                {"error": "Failed to get Naver access token"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "Failed to get Naver access token"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         member_info = self.get_member_info_naver(access_token)
         if "error" in member_info:
-            return Response(member_info, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                member_info, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         social_account = self.get_or_create_social_account(member_info)
         serializer = SocialAccountInfoSerializer(data=social_account)
         if serializer.is_valid():
@@ -143,4 +155,4 @@ class NaverLoginCallback(APIView):
             },
         )
 
-        return  model_to_dict(social_account)
+        return model_to_dict(social_account)
