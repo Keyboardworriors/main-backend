@@ -99,7 +99,10 @@ class MemberInfo(models.Model):
         max_length=30, unique=True, null=False, blank=False
     )
     social_account = models.OneToOneField(
-        SocialAccount, on_delete=models.CASCADE, related_name="member_info", db_index=True
+        SocialAccount,
+        on_delete=models.CASCADE,
+        related_name="member_info",
+        db_index=True,
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
