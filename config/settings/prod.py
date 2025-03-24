@@ -13,7 +13,6 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
 # PostgreSQL 배포용 설정
-# TODO 배포 시 환경변수 수정 요망
 DATABASES["default"].update(
     {
         "NAME": os.getenv("DB_NAME", "prod_db"),
@@ -23,3 +22,22 @@ DATABASES["default"].update(
         "PORT": os.getenv("DB_PORT", "5432"),
     }
 )
+
+
+INSTALLED_APPS = [
+    # own apps
+    "member",
+    "diary",
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
+    # django apps
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+]
+
+ROOT_URLCONF = "config.urls.prod_urls"
