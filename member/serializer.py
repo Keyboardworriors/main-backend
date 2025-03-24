@@ -11,6 +11,12 @@ class SocialAccountSerializer(serializers.ModelSerializer):
         model = SocialAccount
         fields = ["email", "provider", "provider_user_id", "profile_image"]
 
+    def validated_email(self, value):
+        if not value:
+            raise serializers.ValidationError("이메일을 입력하세요.")
+        elif SocialAccount.objects.filter(email=value).exists():
+            raise serializers.ValidationError("중복된 이메일입니다.")
+
 
 class MemberInfoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,7 +32,7 @@ class MemberInfoSerializer(serializers.ModelSerializer):
         ):
             raise serializers.ValidationError("중복된 닉네임입니다.")
 
-        if len(value.encode("utf-8")) > 30:
+        if len(value.encode("utf-8")) > 15:
             raise serializers.ValidationError(
                 "닉네임은 한글 기준으로 최대 15자까지 입력할 수 있습니다."
             )
@@ -65,7 +71,8 @@ class MemberInfoSerializer(serializers.ModelSerializer):
         validated_data["favorite_genre"] = self.validate_favorite_genre(
             validated_data.get("favorite_genre", [])
         )
-        return MemberInfo.objects.create(**validated_data)
+        new_member = MemberInfo.objects.create(**validated_data)
+        return new_member
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -89,20 +96,18 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class SocialAccountInfoSerializer(serializers.Serializer):
-    is_active = serializers.ReadOnlyField()
+    provider = serializers.CharField()
+    provider_user_id = serializers.CharField()
+    email = serializers.EmailField()
+    profile_image = serializers.URLField(allow_blank=True)
+    is_active = serializers.BooleanField(read_only=True)
 
-    class Meta:
-        provider = serializers.CharField()
-        email = serializers.EmailField()
-        profile_image = serializers.URLField()
-        is_active = serializers.BooleanField()
-
-    def validaate_provide(self, value):
-        if not value in ["kakao", "naver"]:
+    def validate_provide(self, value):
+        if value not in ["kakao", "naver"]:
             raise serializers.ValidationError("Invalid provider")
         return value
 
     def validate_email(self, value):
-        if not value:
+        if value is None:
             raise serializers.ValidationError("invalid email")
         return value

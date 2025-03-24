@@ -83,7 +83,7 @@ class SocialAccount(AbstractBaseUser, PermissionsMixin):
         unique_together = ("provider", "provider_user_id")
 
     def __str__(self):
-        return f"{self.provider} - {self.email}"
+        return f"{self.social_account_id}"
 
 
 # 유저 추가 정보 테이블
@@ -99,8 +99,13 @@ class MemberInfo(models.Model):
         max_length=30, unique=True, null=False, blank=False
     )
     social_account = models.OneToOneField(
-        SocialAccount, on_delete=models.CASCADE, related_name="member_info"
+        SocialAccount,
+        on_delete=models.CASCADE,
+        related_name="member_info",
+        db_index=True,
     )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     objects = Manager()
 
     class Meta:
