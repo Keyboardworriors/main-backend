@@ -1,6 +1,6 @@
 from django.urls import path
 
-from member.views import (
+from member.views.api_views import (
     CreateMemberInfo,
     Login,
     Logout,

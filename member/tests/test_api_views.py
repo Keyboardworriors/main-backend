@@ -13,7 +13,7 @@ from member.serializer import (
     ProfileSerializer,
     SocialAccountSerializer,
 )
-from member.views import CreateMemberInfo  # Import necessary view
+from member.views.api_views import CreateMemberInfo  # Import necessary view
 
 
 class CreateMemberInfoViewTest(TestCase):
