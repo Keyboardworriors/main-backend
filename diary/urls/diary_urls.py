@@ -1,6 +1,6 @@
 from django.urls import path
 
-from diary.views import (
+from diary.views.diary_views import (
     DiaryCreateView,
     DiaryDetailView,
     DiaryListView,

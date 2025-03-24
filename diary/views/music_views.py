@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from diary.views_ai import recommend_music
+from diary.views.ai_views import recommend_music
 
 YOUTUBE_API_KEY = settings.YOUTUBE_API_KEY
 youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)

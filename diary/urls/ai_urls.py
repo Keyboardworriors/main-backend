@@ -1,6 +1,6 @@
 from django.urls.conf import path
 
-from diary.views_ai import GetMoods
+from diary.views.ai_views import GetMoods
 
 app_name = "ai"
 
