@@ -1,6 +1,6 @@
 from django.urls import path
 
-from diary.views_music import MusicRecommendView
+from diary.views.music_views import MusicRecommendView
 
 app_name = "music"
 

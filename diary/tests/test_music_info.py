@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from diary.views_music import get_youtube_info
+from diary.views.music_views import get_youtube_info
 
 
 class TestMusicInfo(TestCase):
