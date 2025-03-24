@@ -24,11 +24,11 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/members/", include("member.urls")),
-    path("oauth/", include("member.oauth_urls")),
-    path("api/diary/", include("diary.urls")),
-    path("api/diary/recommendation-keyword", include("diary.ai_urls")),
-    path("api/diary/music/", include("diary.music_urls")),
+    path("api/members/", include("member.urls.api_urls")),
+    path("api/oauth/", include("member.urls.oauth_urls")),
+    path("api/diary/", include("diary.urls.diary_urls")),
+    path("api/diary/recommendation-keyword", include("diary.urls.ai_urls")),
+    path("api/diary/music/", include("diary.urls.music_urls")),
     path(
         "swagger/",
         schema_view.with_ui("swagger", cache_timeout=0),

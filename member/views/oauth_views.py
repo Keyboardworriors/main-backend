@@ -1,35 +1,43 @@
 import requests
+from django.forms.models import model_to_dict
+from psycopg2 import IntegrityError
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from config import settings
 from member.models import SocialAccount
+from member.serializer import (
+    SocialAccountInfoSerializer,
+    SocialAccountSerializer,
+)
 
 
 class KakaoLoginCallback(APIView):
     def get(self, request):
         code = request.GET.get("code")
         if not code:
-            return Response({"error": "Code is missing"}, status=400)
+            return Response(
+                {"error": "Code is missing"}, status=status.HTTP_400_BAD_REQUEST
+            )
         access_token = self.get_access_kakao_token(code)
         if not access_token:
             return Response(
-                {"error": "Failed to get Kakao access token"}, status=500
+                {"error": "Failed to get Kakao access token"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         member_info = self.get_member_info_kakao(access_token)
         if "error" in member_info:
-            return Response(member_info, status=500)
+            return Response(
+                member_info, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         social_account = self.get_or_create_social_account(member_info)
-        social_account_data = {
-            "provider": social_account.provider,
-            "email": social_account.email,
-            "profile_image": social_account.profile_image,
-            "is_registered": social_account.is_registered,
-            "member_id": (
-                str(social_account.member.id) if social_account.member else None
-            ),
-        }
-        return Response(social_account_data, status=200)
+        if social_account.get("error"):
+            return Response({"error": social_account.get("error")}, status=400)
+        serializer = SocialAccountInfoSerializer(data=social_account)
+        if serializer.is_valid():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_access_kakao_token(self, code):
         url = "https://kauth.kakao.com/oauth/token"
@@ -58,49 +66,54 @@ class KakaoLoginCallback(APIView):
             return {"error": f"Kakao User Info Error: {str(e)}"}
 
     def get_or_create_social_account(self, member_info):
-        kakao_account = member_info.get("kakao_account", {})
+        kakao_account = member_info["kakao_account"] or {}
         email = kakao_account.get("email")
-        profile_image = kakao_account.get("profile", {}).get(
-            "profile_image_url", ""
-        )
+        profile = kakao_account.get("profile")
+        profile_image = profile.get("profile_image_url") or ""
         provider_user_id = str(member_info["id"])
+        social_account = SocialAccount.objects.filter(
+            provider="kakao", provider_user_id=provider_user_id
+        ).first()
 
-        social_account, _ = SocialAccount.objects.get_or_create(
-            provider="kakao",
-            provider_user_id=provider_user_id,
-            defaults={
-                "email": email,
-                "profile_image": profile_image,
-                "is_registered": False,
-            },
-        )
-        return social_account
+        if not social_account:
+            if SocialAccount.objects.filter(email=email).exists():
+                return {"error": "이미 해당 이메일이 존재합니다."}
+
+            social_account = SocialAccount.objects.create(
+                provider="kakao",
+                provider_user_id=provider_user_id,
+                email=email,
+                profile_image=profile_image,
+                is_active=False,
+            )
+
+        social_account_dict = model_to_dict(social_account)
+        return social_account_dict
 
 
 class NaverLoginCallback(APIView):
     def get(self, request):
         code = request.GET.get("code")
         if not code:
-            return Response({"error": "missing code"}, status=400)
+            return Response(
+                {"error": "missing code"}, status=status.HTTP_400_BAD_REQUEST
+            )
         access_token = self.get_access_naver_token(code)
         if not access_token:
             return Response(
-                {"error": "Failed to get Naver access token"}, status=500
+                {"error": "Failed to get Naver access token"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         member_info = self.get_member_info_naver(access_token)
         if "error" in member_info:
-            return Response(member_info, status=500)
+            return Response(
+                member_info, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         social_account = self.get_or_create_social_account(member_info)
-        social_account_data = {
-            "provider": social_account.provider,
-            "email": social_account.email,
-            "profile_image": social_account.profile_image,
-            "is_registered": social_account.is_registered,
-            "member_id": (
-                str(social_account.member.id) if social_account.member else None
-            ),
-        }
-        return Response(social_account_data, status=200)
+        serializer = SocialAccountInfoSerializer(data=social_account)
+        if serializer.is_valid():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_access_naver_token(self, code):
         url = "https://nid.naver.com/oauth2.0/token"
@@ -130,7 +143,7 @@ class NaverLoginCallback(APIView):
 
     def get_or_create_social_account(self, member_info):
         email = member_info.get("email")
-        profile_image = member_info.get("profile_image_url", "")
+        profile_image = member_info.get("profile_image")
         provider_user_id = str(member_info.get("id"))
 
         social_account, _ = SocialAccount.objects.get_or_create(
@@ -139,7 +152,7 @@ class NaverLoginCallback(APIView):
             defaults={
                 "email": email,
                 "profile_image": profile_image,
-                "is_registered": False,
             },
         )
-        return social_account
+
+        return model_to_dict(social_account)

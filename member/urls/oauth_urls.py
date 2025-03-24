@@ -1,6 +1,6 @@
 from django.urls.conf import path
 
-from member.oauth_views import KakaoLoginCallback, NaverLoginCallback
+from member.views.oauth_views import KakaoLoginCallback, NaverLoginCallback
 
 app_name = "oauth"
 
