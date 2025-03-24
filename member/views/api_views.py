@@ -25,6 +25,7 @@ class CreateMemberInfo(APIView):
     def post(self, request):
         email = request.data.get("email")
         social_account = SocialAccount.objects.filter(email=email).first()
+        print(email)
         if not social_account:
             return Response({"error": "소셜 계정을 찾을 수 없습니다"}, 400)
         data = copy.deepcopy(request.data)
