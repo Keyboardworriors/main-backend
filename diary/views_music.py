@@ -4,6 +4,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from diary.views_ai import recommend_music
+
 YOUTUBE_API_KEY = settings.YOUTUBE_API_KEY
 youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
 
@@ -40,8 +42,9 @@ def get_youtube_info(title, artist):
 class MusicRecommendView(APIView):
     # 추천된 음악 정보 리스트 반환
     def post(self, request):
-        recommendations = request.data.get("recommendations", [])
-
+        moods = request.data.get("moods", [])
+        favorite_genre = request.data.get("favorite_genre")
+        recommendations = recommend_music(moods, favorite_genre)
         results = []
         for rec in recommendations:
             info = get_youtube_info(rec["title"], rec["artist"])
