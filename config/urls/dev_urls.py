@@ -1,7 +1,7 @@
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 from django.urls.conf import include
-from django.conf.urls.static import static
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework.permissions import AllowAny
@@ -42,4 +42,6 @@ if settings.DEBUG:
     urlpatterns += [
         path("__debug__/", include("debug_toolbar.urls")),
     ]
-    urlpatterns.extend(static(settings.STATIC_URL, document_root=settings.STATIC_ROOT))
+    urlpatterns.extend(
+        static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    )
