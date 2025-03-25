@@ -1,4 +1,6 @@
 import google.generativeai as genai
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView, Response
 
 from config import settings
@@ -20,6 +22,35 @@ genai.configure(api_key=GOOGLE_API_KEY)
 
 
 class GetMoods(APIView):
+    @swagger_auto_schema(
+        operation_description="사용자가 작성한 일기의 내용을 받아 감정을 분석하고, 분석된 감정을 반환합니다.",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                "content": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="사용자가 작성한 일기 내용",
+                )
+            },
+        ),
+        responses={
+            200: openapi.Response(
+                description="성공적으로 감정을 분석한 후 반환",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "moods": openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Items(type=openapi.TYPE_STRING),
+                            description="분석된 감정 목록",
+                        )
+                    },
+                ),
+            ),
+            400: openapi.Response(description="잘못된 입력 데이터"),
+            500: openapi.Response(description="내부 서버 오류"),
+        },
+    )
     def post(self, request):
         content = request.data.get("content")
 
