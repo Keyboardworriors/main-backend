@@ -21,14 +21,6 @@ schema_view = get_schema_view(
     public=True,
     permission_classes=(AllowAny,),
     authentication_classes=[],
-    securityDefinitions={
-        "bearerAuth": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header",
-            "description": "JWT Bearer 토큰",
-        }
-    },
 )
 
 
