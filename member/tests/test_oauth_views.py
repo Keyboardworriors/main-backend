@@ -183,7 +183,7 @@ class KakaoLoginCallbackTestWithoutMock(TestCase):
         response = self.client.get(self.callback_url, {"code": code})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
-            response.data["error"], "이미 해당 이메일이 존재합니다."
+            response.data["error"], "An account with this email already exists."
         )
 
 
@@ -225,7 +225,6 @@ class NaverLoginCallbackTestWithoutMock(TestCase):
         )
 
         response = self.client.get(self.callback_url, {"code": code})
-        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["provider"], "naver")
         self.assertEqual(response.data["provider_user_id"], "67890")
