@@ -4,7 +4,8 @@ from diary.views.diary_views import (
     DiaryCreateView,
     DiaryDetailView,
     DiaryListView,
-    DiarySearchView, EmotionStatusView,
+    DiarySearchView,
+    EmotionStatusView,
 )
 
 app_name = "diary"
