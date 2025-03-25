@@ -3,14 +3,16 @@ import os
 from .base import *
 
 DEBUG = False
-ALLOWED_HOSTS = ["yourdomain.com"]  # 배포 시 실제 도메인
+ALLOWED_HOSTS = ["feelody.site"]  # 배포 시 실제 도메인
 
 # 보안 강화
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_SSL_REDIRECT = True  # HTTPS 강제 적용
+SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+
+DEBUG  = False
 
 # PostgreSQL 배포용 설정
 DATABASES["default"].update(
@@ -31,6 +33,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
+    "corsheaders",
     # django apps
     "django.contrib.admin",
     "django.contrib.auth",

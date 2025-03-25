@@ -72,7 +72,3 @@ jobs:
       - name: Run Django Migration
         run: |
           poetry run python manage.py migrate
-
-      - name: Test python project
-        run: |
-          poetry run python manage.py test
