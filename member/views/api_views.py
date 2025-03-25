@@ -319,7 +319,23 @@ class MemberMypageView(APIView):
     @swagger_auto_schema(
         responses={
             status.HTTP_200_OK: openapi.Response(
-                description="회원 정보", schema=MemberInfoSerializer
+                description="회원 정보",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "nickname": openapi.Schema(type=openapi.TYPE_STRING),
+                        "introduce": openapi.Schema(
+                            type=openapi.TYPE_STRING, nullable=True
+                        ),
+                        "favorite_genre": openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(type=openapi.TYPE_STRING),
+                        ),
+                        "social_account": openapi.Schema(
+                            type=openapi.TYPE_STRING
+                        ),  # 필요에 따라 더 구체적인 스키마 정의
+                    },
+                ),
             ),
             status.HTTP_404_NOT_FOUND: openapi.Response(
                 description="회원 정보를 찾을 수 없습니다.",
@@ -346,10 +362,44 @@ class MemberMypageView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
-        request_body=MemberInfoSerializer(partial=True),
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                "nickname": openapi.Schema(
+                    type=openapi.TYPE_STRING, nullable=True
+                ),
+                "introduce": openapi.Schema(
+                    type=openapi.TYPE_STRING, nullable=True
+                ),
+                "favorite_genre": openapi.Schema(
+                    type=openapi.TYPE_ARRAY,
+                    items=openapi.Schema(type=openapi.TYPE_STRING),
+                    nullable=True,
+                ),
+                "social_account": openapi.Schema(
+                    type=openapi.TYPE_STRING, nullable=True
+                ),  # 필요에 따라 더 구체적인 스키마 정의
+            },
+        ),
         responses={
             status.HTTP_200_OK: openapi.Response(
-                description="업데이트된 회원 정보", schema=MemberInfoSerializer
+                description="업데이트된 회원 정보",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "nickname": openapi.Schema(type=openapi.TYPE_STRING),
+                        "introduce": openapi.Schema(
+                            type=openapi.TYPE_STRING, nullable=True
+                        ),
+                        "favorite_genre": openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(type=openapi.TYPE_STRING),
+                        ),
+                        "social_account": openapi.Schema(
+                            type=openapi.TYPE_STRING
+                        ),  # 필요에 따라 더 구체적인 스키마 정의
+                    },
+                ),
             ),
             status.HTTP_400_BAD_REQUEST: openapi.Response(
                 description="유효성 검사 오류",
