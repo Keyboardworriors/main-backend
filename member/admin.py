@@ -1,84 +1,36 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
 
 from .models import MemberInfo, SocialAccount
 
 
-class SocialAccountAdmin(UserAdmin):
-    model = SocialAccount
-
-    # 기본 필드 설정
-    fieldsets = (
-        (None, {"fields": ("email", "password")}),
-        (
-            "Personal info",
-            {"fields": ("provider", "provider_user_id", "profile_image")},
-        ),
-        (
-            "Permissions",
-            {
-                "fields": (
-                    "is_active",
-                    "is_staff",
-                    "is_superuser",
-                    "groups",
-                    "user_permissions",
-                )
-            },
-        ),
-        ("Important dates", {"fields": ("created_at", "updated_at")}),
-    )
-    add_fieldsets = (
-        (
-            None,
-            {
-                "classes": ("wide",),
-                "fields": (
-                    "email",
-                    "provider",
-                    "provider_user_id",
-                    "password1",
-                    "password2",
-                ),
-            },
-        ),
-    )
+@admin.register(SocialAccount)
+class SocialAccountAdmin(admin.ModelAdmin):
     list_display = (
-        "email",
+        "social_account_id",
         "provider",
         "provider_user_id",
+        "email",
+        "is_active",
         "is_staff",
         "is_superuser",
         "created_at",
     )
-    list_filter = ("is_staff", "is_superuser", "is_active")
-    search_fields = ("email", "provider")
-    ordering = ("email",)
+    search_fields = ("email", "provider_user_id")
+    list_filter = ("provider", "is_active", "is_staff", "is_superuser")
+    readonly_fields = ("social_account_id", "created_at", "updated_at")
+    ordering = ("-created_at",)
 
 
+@admin.register(MemberInfo)
 class MemberInfoAdmin(admin.ModelAdmin):
-    model = MemberInfo
-
-    # 필드 설정
-    fieldsets = (
-        (
-            None,
-            {
-                "fields": (
-                    "nickname",
-                    "introduce",
-                    "favorite_genre",
-                    "social_account",
-                )
-            },
-        ),
+    list_display = (
+        "member_info_id",
+        "nickname",
+        "social_account",
+        "introduce",
+        "created_at",
     )
-    list_display = ("nickname", "introduce", "favorite_genre", "social_account")
-    list_filter = ("nickname",)
-    search_fields = ("nickname", "favorite_genre")
-    ordering = ("nickname",)
-
-
-# 모델 등록
-admin.site.register(SocialAccount, SocialAccountAdmin)
-admin.site.register(MemberInfo, MemberInfoAdmin)
+    search_fields = ("nickname", "social_account__email")
+    list_filter = ("favorite_genre",)
+    readonly_fields = ("member_info_id", "created_at", "updated_at")
+    ordering = ("-created_at",)

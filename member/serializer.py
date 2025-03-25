@@ -13,9 +13,13 @@ class SocialAccountSerializer(serializers.ModelSerializer):
 
     def validated_email(self, value):
         if not value:
-            raise serializers.ValidationError("이메일을 입력하세요.")
+            raise serializers.ValidationError(
+                "Please provide an email address."
+            )
         elif SocialAccount.objects.filter(email=value).exists():
-            raise serializers.ValidationError("중복된 이메일입니다.")
+            raise serializers.ValidationError(
+                "This email address is already in use."
+            )
 
 
 class MemberInfoSerializer(serializers.ModelSerializer):
@@ -30,18 +34,18 @@ class MemberInfoSerializer(serializers.ModelSerializer):
             .exclude(pk=self.instance.pk)
             .exists()
         ):
-            raise serializers.ValidationError("중복된 닉네임입니다.")
+            raise serializers.ValidationError("This nickname is already taken.")
 
         if len(value.encode("utf-8")) > 15:
             raise serializers.ValidationError(
-                "닉네임은 한글 기준으로 최대 15자까지 입력할 수 있습니다."
+                "Nickname can be up to 15 characters (Korean)."
             )
         return value
 
     def validate_introduce(self, value):
         if value and len(value) > 25:
             raise serializers.ValidationError(
-                "한 줄 소개는 25자 이내로 적어주세요."
+                "Introduce can be up to 25 characters."
             )
         return value
 
@@ -50,11 +54,9 @@ class MemberInfoSerializer(serializers.ModelSerializer):
             try:
                 value = json.loads(value)
             except json.JSONDecodeError:
-                raise serializers.ValidationError("올바른 형식이 아닙니다.")
+                raise serializers.ValidationError("Invalid format.")
         elif not isinstance(value, list):
-            raise serializers.ValidationError(
-                "favorite_genre는 리스트 형식이어야 합니다."
-            )
+            raise serializers.ValidationError("favorite_genre must be a list.")
         return value or []
 
     def update(self, instance, validated_data):
@@ -69,7 +71,9 @@ class MemberInfoSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data["favorite_genre"] = self.validate_favorite_genre(
-            validated_data.get("favorite_genre", [])
+            validated_data.get(
+                "favorite_genre",
+            )
         )
         new_member = MemberInfo.objects.create(**validated_data)
         return new_member
@@ -109,5 +113,5 @@ class SocialAccountInfoSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         if value is None:
-            raise serializers.ValidationError("invalid email")
+            raise serializers.ValidationError("Invalid email")
         return value
