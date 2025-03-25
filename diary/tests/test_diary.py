@@ -1,11 +1,13 @@
 from datetime import timedelta
-from django.utils import timezone
+
+from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APIClient, APITestCase
+
 from diary.models import Diary
 from member.models import MemberInfo
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -34,7 +36,9 @@ class DiaryTests(APITestCase):
             moods=["기쁨", "설렘"],
             date=self.today,
         )
-        self.diary_url = reverse("diary:diary-detail", args=[self.diary.diary_id])
+        self.diary_url = reverse(
+            "diary:diary-detail", args=[self.diary.diary_id]
+        )
 
     def test_create_diary(self):
         url = reverse("diary:diary-create")
@@ -74,7 +78,9 @@ class DiaryTests(APITestCase):
     def test_get_diary_detail(self):
         response = self.client.get(self.diary_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["data"]["diary_id"], str(self.diary.diary_id))
+        self.assertEqual(
+            response.data["data"]["diary_id"], str(self.diary.diary_id)
+        )
 
     def test_get_diary_list(self):
         Diary.objects.create(
@@ -87,7 +93,10 @@ class DiaryTests(APITestCase):
         url = reverse("diary:diary-main")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["message"], "Successfully displayed diary list with date.")
+        self.assertEqual(
+            response.data["message"],
+            "Successfully displayed diary list with date.",
+        )
         self.assertGreaterEqual(len(response.data["data"]), 2)
 
     def test_search_diary(self):
@@ -100,7 +109,9 @@ class DiaryTests(APITestCase):
     def test_delete_diary(self):
         response = self.client.delete(self.diary_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(Diary.objects.filter(diary_id=self.diary.diary_id).exists())
+        self.assertFalse(
+            Diary.objects.filter(diary_id=self.diary.diary_id).exists()
+        )
 
 
 class EmotionStatusTests(APITestCase):
