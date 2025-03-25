@@ -81,9 +81,9 @@ class GetMoods(APIView):
 
             # 응답이 없거나 예상 형식이 아닐 경우
             if (
-                    not response
-                    or not hasattr(response, "text")
-                    or not response.text.strip()
+                not response
+                or not hasattr(response, "text")
+                or not response.text.strip()
             ):
                 raise RuntimeError("No valid response received from the model.")
 
@@ -113,9 +113,9 @@ def recommend_music(moods, favorite_genre):
 
         # 응답이 없거나 예상 형식이 아닐 경우 빈 리스트 반환
         if (
-                not response
-                or not hasattr(response, "text")
-                or not response.text.strip()
+            not response
+            or not hasattr(response, "text")
+            or not response.text.strip()
         ):
             return []
 
