@@ -9,8 +9,6 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 
 from diary.models import Diary
 from diary.serializers import DiarySerializer
@@ -87,7 +85,6 @@ class DiaryDetailView(APIView):
             404: openapi.Response(description="일기를 찾을 수 없음"),
         },
     )
-
     def get(self, request, diary_id):
         if diary_id:
             diary = get_object_or_404(
@@ -225,6 +222,38 @@ class DiarySearchView(APIView):
 class EmotionStatusView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_description="사용자의 감정 통계를 조회합니다.",
+        manual_parameters=[
+            openapi.Parameter(
+                "period",
+                openapi.IN_QUERY,
+                description="조회 기간 (week, month, year 중 하나)",
+                type=openapi.TYPE_STRING,
+                required=True,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="감정 통계 조회 성공",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "period": openapi.Schema(type=openapi.TYPE_STRING, description="조회한 기간"),
+                        "start_date": openapi.Schema(type=openapi.TYPE_STRING, format="date", description="시작 날짜"),
+                        "end_date": openapi.Schema(type=openapi.TYPE_STRING, format="date", description="끝 날짜"),
+                        "emotion_stats": openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            additional_properties=openapi.Schema(type=openapi.TYPE_INTEGER, description="감정 빈도수"),
+                            description="각 감정별 등장 횟수",
+                        ),
+                    },
+                ),
+            ),
+            400: openapi.Response(description="잘못된 요청 (올바른 기간을 사용해야 함)"),
+        },
+    )
+
     def get(self, request):
         period = request.GET.get("period")
         today = now().date()
@@ -253,6 +282,7 @@ class EmotionStatusView(APIView):
         for diary in all_diary:
             all_moods.extend(diary.moods)
 
+        from collections import Counter
         mood_counts = Counter(all_moods)
 
         return Response(
