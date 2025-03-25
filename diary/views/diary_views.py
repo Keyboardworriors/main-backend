@@ -73,7 +73,7 @@ class DiaryDetailView(APIView):
 
         diary.delete()
         return Response(
-            {"message": "Successfully deleted."}, # 일기 삭제 성공
+            {"message": "Successfully deleted."},  # 일기 삭제 성공
             status=status.HTTP_200_OK,
         )
 
@@ -127,7 +127,7 @@ class DiarySearchView(APIView):
         # 검색 데이터 없을 때
         if not diaries.exists():
             return Response(
-                {"error": "not_found", "message":"not found for your search."},
+                {"error": "not_found", "message": "not found for your search."},
                 status=status.HTTP_200_OK,
             )
 
@@ -155,9 +155,7 @@ class EmotionStatusView(APIView):
             start_date = today - datetime.timedelta(days=365)
         else:
             return Response(
-                {
-                    "error": "Please use one of: week, month, or year."
-                },
+                {"error": "Please use one of: week, month, or year."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
