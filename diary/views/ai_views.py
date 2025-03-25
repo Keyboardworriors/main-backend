@@ -27,11 +27,11 @@ class GetMoods(APIView):
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'content': openapi.Schema(
+                "content": openapi.Schema(
                     type=openapi.TYPE_STRING,
-                    description='사용자가 작성한 일기 내용'
+                    description="사용자가 작성한 일기 내용",
                 )
-            }
+            },
         ),
         responses={
             200: openapi.Response(
@@ -39,21 +39,17 @@ class GetMoods(APIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'moods': openapi.Schema(
+                        "moods": openapi.Schema(
                             type=openapi.TYPE_ARRAY,
                             items=openapi.Items(type=openapi.TYPE_STRING),
-                            description="분석된 감정 목록"
+                            description="분석된 감정 목록",
                         )
-                    }
-                )
+                    },
+                ),
             ),
-            400: openapi.Response(
-                description="잘못된 입력 데이터"
-            ),
-            500: openapi.Response(
-                description="내부 서버 오류"
-            ),
-        }
+            400: openapi.Response(description="잘못된 입력 데이터"),
+            500: openapi.Response(description="내부 서버 오류"),
+        },
     )
     def post(self, request):
         content = request.data.get("content")

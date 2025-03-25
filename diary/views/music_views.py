@@ -53,17 +53,17 @@ class MusicRecommendView(APIView):
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'moods': openapi.Schema(
+                "moods": openapi.Schema(
                     type=openapi.TYPE_ARRAY,
                     items=openapi.Items(type=openapi.TYPE_STRING),
-                    description="사용자가 입력한 감정 목록"
+                    description="사용자가 입력한 감정 목록",
                 ),
-                'favorite_genre': openapi.Schema(
+                "favorite_genre": openapi.Schema(
                     type=openapi.TYPE_STRING,
-                    description="사용자가 선호하는 음악 장르"
+                    description="사용자가 선호하는 음악 장르",
                 ),
             },
-            required=['moods', 'favorite_genre']
+            required=["moods", "favorite_genre"],
         ),
         responses={
             200: openapi.Response(
@@ -71,26 +71,43 @@ class MusicRecommendView(APIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'message': openapi.Schema(type=openapi.TYPE_STRING, description="결과 메시지"),
-                        'data': openapi.Schema(
+                        "message": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="결과 메시지"
+                        ),
+                        "data": openapi.Schema(
                             type=openapi.TYPE_ARRAY,
                             items=openapi.Items(
                                 type=openapi.TYPE_OBJECT,
                                 properties={
-                                    'videoId': openapi.Schema(type=openapi.TYPE_STRING, description="YouTube 비디오 ID"),
-                                    'title': openapi.Schema(type=openapi.TYPE_STRING, description="곡 제목"),
-                                    'artist': openapi.Schema(type=openapi.TYPE_STRING, description="아티스트 이름"),
-                                    'thumbnail': openapi.Schema(type=openapi.TYPE_STRING, description="곡 썸네일 URL"),
-                                    'embedUrl': openapi.Schema(type=openapi.TYPE_STRING, description="YouTube 임베드 URL")
-                                }
-                            )
-                        )
-                    }
-                )
+                                    "videoId": openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description="YouTube 비디오 ID",
+                                    ),
+                                    "title": openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description="곡 제목",
+                                    ),
+                                    "artist": openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description="아티스트 이름",
+                                    ),
+                                    "thumbnail": openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description="곡 썸네일 URL",
+                                    ),
+                                    "embedUrl": openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description="YouTube 임베드 URL",
+                                    ),
+                                },
+                            ),
+                        ),
+                    },
+                ),
             ),
             404: openapi.Response(description="추천된 음악이 없음"),
-            500: openapi.Response(description="서버 에러")
-        }
+            500: openapi.Response(description="서버 에러"),
+        },
     )
     # 추천된 음악 정보 리스트 반환
     def post(self, request):
