@@ -239,21 +239,35 @@ class EmotionStatusView(APIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        "period": openapi.Schema(type=openapi.TYPE_STRING, description="조회한 기간"),
-                        "start_date": openapi.Schema(type=openapi.TYPE_STRING, format="date", description="시작 날짜"),
-                        "end_date": openapi.Schema(type=openapi.TYPE_STRING, format="date", description="끝 날짜"),
+                        "period": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="조회한 기간"
+                        ),
+                        "start_date": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format="date",
+                            description="시작 날짜",
+                        ),
+                        "end_date": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format="date",
+                            description="끝 날짜",
+                        ),
                         "emotion_stats": openapi.Schema(
                             type=openapi.TYPE_OBJECT,
-                            additional_properties=openapi.Schema(type=openapi.TYPE_INTEGER, description="감정 빈도수"),
+                            additional_properties=openapi.Schema(
+                                type=openapi.TYPE_INTEGER,
+                                description="감정 빈도수",
+                            ),
                             description="각 감정별 등장 횟수",
                         ),
                     },
                 ),
             ),
-            400: openapi.Response(description="잘못된 요청 (올바른 기간을 사용해야 함)"),
+            400: openapi.Response(
+                description="잘못된 요청 (올바른 기간을 사용해야 함)"
+            ),
         },
     )
-
     def get(self, request):
         period = request.GET.get("period")
         today = now().date()
@@ -283,6 +297,7 @@ class EmotionStatusView(APIView):
             all_moods.extend(diary.moods)
 
         from collections import Counter
+
         mood_counts = Counter(all_moods)
 
         return Response(
