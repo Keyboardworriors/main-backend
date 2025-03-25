@@ -1,4 +1,5 @@
 import datetime
+from collections import Counter
 
 from django.db.models import Q
 from rest_framework import status
@@ -6,6 +7,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.utils.timezone import now
 
 from diary.models import Diary
 from diary.serializers import DiarySerializer
@@ -133,5 +135,44 @@ class DiarySearchView(APIView):
 
         return Response(
             {"message": "일기 검색 성공", "data": serializer.data},
+            status=status.HTTP_200_OK,
+        )
+
+# 기간별 감정 통계
+class EmotionStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        period = request.GET.get("period", "week") # 기본값은 주(week)
+        today = now().date()
+
+        if period == "week":
+            start_date = today - datetime.timedelta(days=7)
+        elif period == "month":
+            start_date = today - datetime.timedelta(days=30)
+        elif period == "year":
+            start_date = today - datetime.timedelta(days=365)
+        else:
+            return Response({"error": "유효한 기간(period)이 아닙니다. week, month, year 중 하나를 사용하세요."},
+            status=status.HTTP_400_BAD_REQUEST)
+
+        # 해당 기간의 다이어리 조회
+        all_diary = Diary.objects.filter(
+            member = request.user.social_account_id,
+            created_at__date__gte=start_date,
+            created_at__date__lte=today,
+        )
+
+        # 감정 키워드 수집
+        all_moods =[]
+        for diary in all_diary:
+            all_moods.extend(diary.moods)
+
+        mood_counts = Counter(all_moods)
+
+        return Response(
+            {"period": period,
+            "start_date": start_date,
+            "end_date": today,
+            "emotion_stats": mood_counts},
             status=status.HTTP_200_OK,
         )
