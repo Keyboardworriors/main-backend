@@ -1,8 +1,26 @@
+from django.contrib.auth import get_user_model
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient, APITestCase
+from rest_framework_simplejwt.tokens import RefreshToken
+
+User = get_user_model()
 
 
 class EmotionMusicAITests(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+        self.email = "test@email.com"
+        self.password = "password123"
+        self.nickname = "testnickname"
+
+        self.user = User.objects.create_user(
+            email=self.email,
+            provider="test_provider",
+            provider_user_id="test_id",
+            password=self.password,
+        )
+
     def test_extract_emotions_from_diary(self):
         """일기 내용을 AI로 분석해서 감정 키워드 추출 테스트"""
         diary_content = {
@@ -26,8 +44,9 @@ class EmotionMusicAITests(APITestCase):
     def test_recommend_music_based_on_emotions(
         self,
     ):
+        self.client.force_authenticate(user=self.user)
         """감정 + 장르 기반 음악 추천 테스트"""
-        data = {"moods": ["피곤", "초조"], "favorite_genre": "pop"}
+        data = {"moods": ["피곤", "초조"], "favorite_genre": ["발라드"]}
         response = self.client.post(
             "/api/diary/music/recommend/", data=data, format="json"
         )

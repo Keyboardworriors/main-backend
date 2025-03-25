@@ -1,4 +1,5 @@
 import datetime
+from datetime import date
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -68,7 +69,7 @@ class DiaryTests(APITestCase):
             "diary_title": "새로운 일기 테스트",
             "content": "테스트가 잘 안되서 너무속상한 상태이다. 어려움을 겪고있어서 너무 힘들고 지친다. 왜이걸 해야하는건가으아아아악 머리가 너무아파 요 우우아가가가",
             "moods": ["분노", "좌절"],
-            "created_at": self.past_date_0,
+            "date": self.past_date_0,
         }
         response = self.client.post(
             "/api/diary/create/", data=payload, format="json"
@@ -88,7 +89,7 @@ class DiaryTests(APITestCase):
             "diary_title": "빈 과거 날짜의 일기",
             "content": "과거의 날짜중 일기를 쓰지 않은 날 작성이 가능해야 한다! 제발 되쓰면 ㅎㅎ",
             "moods": ["초조", "희망"],
-            "created_at": self.past_date,
+            "date": self.past_date,
         }
         print(
             f"🚀 테스트: 과거 일기 작성 요청 payload: {payload}"
@@ -110,7 +111,7 @@ class DiaryTests(APITestCase):
             "diary_title": "오늘 이후의 일기",
             "content": "오늘 이후 즉, 미래의 일기는 써지면 안된다. 안될 거 같아서 매우 초조하다 엄청 피곤함..",
             "moods": ["불안", "피곤"],
-            "created_at": self.future_date,
+            "date": self.future_date,
         }
         response = self.client.post(
             "/api/diary/create/", data=payload, format="json"
@@ -126,7 +127,7 @@ class DiaryTests(APITestCase):
             "diary_title": "오늘 일기 또쓰지롱",
             "content": "오늘 날짜로 일기 또쓰는데 과연 될런지 .. 기대가 됩니다.",
             "moods": ["불안", "피곤"],
-            "created_at": self.today,
+            "date": self.today,
         }
 
         self.client.post("/api/diary/create/", data=payload, format="json")
@@ -157,14 +158,14 @@ class DiaryTests(APITestCase):
             diary_title="추가 일기1",
             content="내용1" * 10,
             moods=["기쁨"],
-            created_at=datetime.date.today() - datetime.timedelta(days=1),
+            date=date.today() - datetime.timedelta(days=1),
         )
         Diary.objects.create(
             member=self.user,
             diary_title="추가 일기2",
             content="내용2" * 10,
             moods=["슬픔"],
-            created_at=datetime.date.today() - datetime.timedelta(days=2),
+            date=date.today() - datetime.timedelta(days=2),
         )
 
         url = reverse("diary:diary-main")
@@ -213,3 +214,55 @@ class DiaryTests(APITestCase):
         self.assertFalse(diary_exists_after, "일기가 삭제되지 않았습니다.")
 
         print("🥳 일기 삭제 테스트 통과")
+
+
+class EmotionStatusTests(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email="test@email.com",
+            password="testpassword123",
+            provider="test",
+            provider_user_id="provider123",
+        )
+        MemberInfo.objects.create(social_account=self.user, nickname="testuser")
+        self.client.force_authenticate(user=self.user)
+
+        # 날짜 세팅
+        self.today = date.today()
+        self.seven_days_ago = self.today - datetime.timedelta(days=7)
+        self.ten_days_ago = self.today - datetime.timedelta(days=10)
+
+        # 최근 일기 (기간 내)
+        Diary.objects.create(
+            member=self.user,
+            diary_title="최근 일기",
+            content="내용입니다.",
+            moods=["기쁨", "신남"],
+            date=self.today,
+        )
+
+        # 오래된 일기 (기간 밖)
+        Diary.objects.create(
+            member=self.user,
+            diary_title="오래된 일기",
+            content="이건 포함되면 안돼요",
+            moods=["우울"],
+            date=self.ten_days_ago,
+        )
+
+    def test_emotion_status_week(self):
+        response = self.client.get("/api/diary/by-period/?period=week")
+
+        print("🔹 서버 응답:", response.data)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["period"], "week")
+        self.assertIn("emotion_stats", response.data)
+
+        stats = response.data["emotion_stats"]
+        self.assertIn("기쁨", stats)
+        self.assertIn("신남", stats)
+        self.assertNotIn("우울", stats)
+
+        print("🥳 주간 감정 통계 테스트 통과!")
