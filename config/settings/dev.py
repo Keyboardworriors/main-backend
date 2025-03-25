@@ -9,6 +9,6 @@ INSTALLED_APPS.append("debug_toolbar")  # 개발 도구 추가
 
 MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
 
-INTERNAL_IPS = ["127.0.0.1"]
+INTERNAL_IPS = ["*"]
 
 ROOT_URLCONF = "config.urls.dev_urls"

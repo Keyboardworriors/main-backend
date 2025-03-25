@@ -1,5 +1,7 @@
 import requests
 from django.forms.models import model_to_dict
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from psycopg2 import IntegrityError
 from rest_framework import status
 from rest_framework.response import Response
@@ -14,6 +16,46 @@ from member.serializer import (
 
 
 class KakaoLoginCallback(APIView):
+    @swagger_auto_schema(
+        operation_summary="Kakao Login Callback API",
+        operation_description="Handles the callback after Kakao login, processes the authorization code, and creates/retrieves the social account.",
+        manual_parameters=[
+            openapi.Parameter(
+                name="code",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Authorization code received from Kakao",
+                required=True,
+            ),
+        ],
+        responses={
+            status.HTTP_200_OK: openapi.Response(
+                description="Successful login or account connection",
+                schema=SocialAccountInfoSerializer,
+            ),
+            status.HTTP_400_BAD_REQUEST: openapi.Response(
+                description="Bad request",
+                examples={
+                    "application/json": {"error": "Code is missing"},
+                    "application/json": {
+                        "email": ["Please provide an email address."]
+                    },
+                    "application/json": {
+                        "error": "This email address is already in use."
+                    },
+                },
+            ),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response(
+                description="Failed to communicate with Kakao API",
+                examples={
+                    "application/json": {
+                        "error": "Failed to get Kakao access token"
+                    },
+                    "application/json": {"error": "Kakao User Info Error: ..."},
+                },
+            ),
+        },
+    )
     def get(self, request):
         code = request.GET.get("code")
         if not code:
@@ -33,7 +75,10 @@ class KakaoLoginCallback(APIView):
             )
         social_account = self.get_or_create_social_account(member_info)
         if social_account.get("error"):
-            return Response({"error": social_account.get("error")}, status=400)
+            return Response(
+                {"error": social_account.get("error")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         serializer = SocialAccountInfoSerializer(data=social_account)
         if serializer.is_valid():
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -77,7 +122,7 @@ class KakaoLoginCallback(APIView):
 
         if not social_account:
             if SocialAccount.objects.filter(email=email).exists():
-                return {"error": "이미 해당 이메일이 존재합니다."}
+                return {"error": "An account with this email already exists."}
 
             social_account = SocialAccount.objects.create(
                 provider="kakao",
@@ -92,6 +137,42 @@ class KakaoLoginCallback(APIView):
 
 
 class NaverLoginCallback(APIView):
+    @swagger_auto_schema(
+        operation_summary="Naver Login Callback API",
+        operation_description="Handles the callback after Naver login, processes the authorization code, and creates/retrieves the social account.",
+        manual_parameters=[
+            openapi.Parameter(
+                name="code",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Authorization code received from Naver",
+                required=True,
+            ),
+        ],
+        responses={
+            status.HTTP_200_OK: openapi.Response(
+                description="Successful login or account connection",
+                schema=SocialAccountInfoSerializer,
+            ),
+            status.HTTP_400_BAD_REQUEST: openapi.Response(
+                description="Bad request",
+                examples={
+                    "application/json": {"error": "missing code"},
+                    "application/json": {"provider": ["Invalid provider"]},
+                    "application/json": {"email": ["Invalid email"]},
+                },
+            ),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response(
+                description="Failed to communicate with Naver API",
+                examples={
+                    "application/json": {
+                        "error": "Failed to get Naver access token"
+                    },
+                    "application/json": {"error": "Naver User Info Error: ..."},
+                },
+            ),
+        },
+    )
     def get(self, request):
         code = request.GET.get("code")
         if not code:
