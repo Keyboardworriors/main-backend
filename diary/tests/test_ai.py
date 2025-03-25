@@ -9,7 +9,7 @@ class EmotionMusicAITests(APITestCase):
             "content": "공부하면서 머리를 너무 많이 썼더니 머리가 시끄럽다. 스트레스 받을때는 역시 조용하고 차분하게 커피 한잔 하면서 창밖을 보는것,,, 오늘까지 빡세게 공부하고 내일은 날씨도 좋은데 밖에나가 놀아야겟다 "
         }
         response = self.client.post(
-            "/api/diary/recommendation-keyword",
+            "/api/diary/recommendation-keyword/",
             data=diary_content,
             format="json",
         )
