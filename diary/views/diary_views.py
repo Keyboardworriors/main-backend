@@ -21,10 +21,10 @@ class DiaryListView(APIView):
         # 일기 날짜
         all_diary = Diary.objects.filter(
             member=request.user.social_account_id
-        ).values("diary_id", "created_at")
+        ).values("diary_id", "date")
         diary_data = [
             {
-                "date": diary["created_at"].strftime("%Y-%m-%d"),
+                "date": diary["date"].strftime("%Y-%m-%d"),
                 "diary_id": str(diary["diary_id"]),
             }
             for diary in all_diary
