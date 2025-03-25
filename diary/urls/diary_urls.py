@@ -5,6 +5,7 @@ from diary.views.diary_views import (
     DiaryDetailView,
     DiaryListView,
     DiarySearchView,
+    EmotionStatusView,
 )
 
 app_name = "diary"
@@ -13,4 +14,5 @@ urlpatterns = [
     path("<uuid:diary_id>/", DiaryDetailView.as_view(), name="diary-detail"),
     path("search/", DiarySearchView.as_view(), name="diary-search"),
     path("create/", DiaryCreateView.as_view(), name="diary-create"),
+    path("by-period/", EmotionStatusView.as_view(), name="emotion-status"),
 ]
