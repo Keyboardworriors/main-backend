@@ -46,7 +46,7 @@ class DiarySerializer(serializers.ModelSerializer):
                 ).date()
             except ValueError:
                 raise serializers.ValidationError(
-                    "날짜 형식이 잘못되었습니다. (형식: YYYY-MM-DD)"
+                    "Invalid date format. Use YYYY-MM-DD."
                 )
         # datetime 으로 들어왔을 경우도 date() 처리 추가
         if isinstance(diary_date, datetime.datetime):
@@ -54,20 +54,20 @@ class DiarySerializer(serializers.ModelSerializer):
 
         # date 인지 최종확인
         if not isinstance(diary_date, datetime.date):
-            raise serializers.ValidationError("날짜 형식이 올바르지 않습니다.")
+            raise serializers.ValidationError("Date format is incorrect.")
 
         data["date"] = diary_date  # DB에 받은 날짜 반영
 
         # 미래 날짜 방지(작성 불가)
         if diary_date > today:
             raise serializers.ValidationError(
-                "미래의 날짜에는 일기를 작성할 수 없습니다."
+                "You cannot write a diary for a future date."
             )
 
         # 중복 일기 방지 (하루 한개만 작성 가능)
         if Diary.objects.filter(member=request.user, date=diary_date).exists():
             raise serializers.ValidationError(
-                "해당 날짜에 이미 일기가 존재합니다."
+                "A diary already exists for the selected date."
             )
 
         return data
@@ -75,10 +75,10 @@ class DiarySerializer(serializers.ModelSerializer):
     # content (일기내용) 필드의 길이 제한 검증 추가
     def validate_content(self, value):
         if not value or len(value.strip()) == 0:
-            raise serializers.ValidationError("일기 내용을 입력해야 합니다.")
+            raise serializers.ValidationError("Diary content is required.")
         if len(value) < 20:
             raise serializers.ValidationError(
-                "일기 내용은 최소 20자 이상 입력해야 합니다."
+                "Diary content must be at least 20 characters long."
             )
         return value
 

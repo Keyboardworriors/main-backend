@@ -32,7 +32,7 @@ class DiaryListView(APIView):
 
         return Response(
             {
-                "message": "일기 날짜 데이터 불러오기 성공.",
+                "message": "Successfully displayed diary list with date.",
                 "data": diary_data,
             },
             status=status.HTTP_200_OK,
@@ -51,7 +51,7 @@ class DiaryDetailView(APIView):
             serializer = DiarySerializer(diary)
             return Response(
                 {
-                    "message": "일기 조회 성공.",
+                    "message": "Successfully diary detail.",
                     "data": serializer.data,
                 },
                 status=status.HTTP_200_OK,
@@ -59,7 +59,7 @@ class DiaryDetailView(APIView):
         # 일기가 없으면 일기 쓰기 안내
         return Response(
             {
-                "message": "선택한 날짜에 일기가 없습니다.",
+                "message": "No diary for the selected date",
                 "data": None,
             },
             status=status.HTTP_200_OK,
@@ -73,7 +73,7 @@ class DiaryDetailView(APIView):
 
         diary.delete()
         return Response(
-            {"message": "Successfully deleted."},
+            {"message": "Successfully deleted."}, # 일기 삭제 성공
             status=status.HTTP_200_OK,
         )
 
@@ -114,7 +114,7 @@ class DiarySearchView(APIView):
             return Response(
                 {
                     "error": "invalid_request",
-                    "message": "검색어(q)를 입력해주세요.",
+                    "message": "input search query(q).",
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -127,14 +127,14 @@ class DiarySearchView(APIView):
         # 검색 데이터 없을 때
         if not diaries.exists():
             return Response(
-                {"error": "not_found", "message": "검색 결과가 없습니다."},
+                {"error": "not_found", "message":"not found for your search."},
                 status=status.HTTP_200_OK,
             )
 
         serializer = DiarySerializer(diaries, many=True)
 
         return Response(
-            {"message": "일기 검색 성공", "data": serializer.data},
+            {"message": "Successfully searched diary", "data": serializer.data},
             status=status.HTTP_200_OK,
         )
 
@@ -156,7 +156,7 @@ class EmotionStatusView(APIView):
         else:
             return Response(
                 {
-                    "error": "유효한 기간(period)이 아닙니다. week, month, year 중 하나를 사용하세요."
+                    "error": "Please use one of: week, month, or year."
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )

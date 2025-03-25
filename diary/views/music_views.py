@@ -63,6 +63,6 @@ class MusicRecommendView(APIView):
                 results.append(info)
 
         return Response(
-            {"message": "음악 추천 완료", "data": results},
+            {"message": "Music recommendation completed.", "data": results},
             status=status.HTTP_200_OK,
         )
