@@ -93,8 +93,9 @@ class KakaoLoginCallback(APIView):
             "redirect_uri": settings.KAKAO_REDIRECT_URL,
             "code": code,
         }
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
         try:
-            response = requests.post(url, data=data)
+            response = requests.post(url, headers=headers, data=data)
             response.raise_for_status()
             return response.json().get("access_token")
         except requests.RequestException as e:
