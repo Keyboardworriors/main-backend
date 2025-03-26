@@ -191,6 +191,11 @@ class NaverLoginCallback(APIView):
                 member_info, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         social_account = self.get_or_create_social_account(member_info)
+        if social_account.get("error"):
+            return Response(
+                {"error": social_account.get("error")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         serializer = SocialAccountInfoSerializer(data=social_account)
         if serializer.is_valid():
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -227,13 +232,21 @@ class NaverLoginCallback(APIView):
         profile_image = member_info.get("profile_image")
         provider_user_id = str(member_info.get("id"))
 
-        social_account, _ = SocialAccount.objects.get_or_create(
-            provider="naver",
-            provider_user_id=provider_user_id,
-            defaults={
-                "email": email,
-                "profile_image": profile_image,
-            },
-        )
+        social_account = SocialAccount.objects.filter(
+            provider="naver", provider_user_id=provider_user_id
+        ).first()
 
-        return model_to_dict(social_account)
+        if not social_account:
+            if SocialAccount.objects.filter(email=email).exists():
+                return {"error": "An account with this email already exists."}
+
+            social_account = SocialAccount.objects.create(
+                provider="naver",
+                provider_user_id=provider_user_id,
+                email=email,
+                profile_image=profile_image,
+                is_active=False,
+            )
+
+        social_account_dict = model_to_dict(social_account)
+        return social_account_dict
