@@ -104,7 +104,7 @@ class SocialAccountInfoSerializer(serializers.Serializer):
     provider_user_id = serializers.CharField()
     email = serializers.EmailField()
     profile_image = serializers.URLField(allow_blank=True)
-    is_active = serializers.BooleanField(read_only=True)
+    is_active = serializers.BooleanField()
 
     def validate_provide(self, value):
         if value not in ["kakao", "naver"]:
