@@ -85,6 +85,7 @@ class KakaoLoginCallback(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_access_kakao_token(self, code):
+        print(f"Received code: {code}")
         url = "https://kauth.kakao.com/oauth/token"
         data = {
             "grant_type": "authorization_code",
@@ -93,12 +94,16 @@ class KakaoLoginCallback(APIView):
             "redirect_uri": settings.KAKAO_REDIRECT_URL,
             "code": code,
         }
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded; charset=utf-8"
+        }
         try:
             response = requests.post(url, headers=headers, data=data)
+            print(response.json())  # 응답 내용 확인
             response.raise_for_status()
             return response.json().get("access_token")
         except requests.RequestException as e:
+            print(f"Kakao token request error: {str(e)}")  # 오류 로그 추가
             return None
 
     def get_member_info_kakao(self, access_token):
