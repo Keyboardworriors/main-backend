@@ -52,7 +52,7 @@ class MusicRecommendView(APIView):
         serializer.is_valid(raise_exception=True)
 
         moods = serializer.validated_data["moods"]
-        favorite_genre = serializer.validated_data.get("favorite_genre", None)
+        favorite_genre = serializer.validated_data["favorite_genre"]
 
         # ai 기반 음악 추천
         recommendations = recommend_music(moods, favorite_genre)

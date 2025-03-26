@@ -101,6 +101,7 @@ class FavoriteGenreSerializer(serializers.Serializer):
         child=serializers.CharField(), allow_empty=False
     )
     favorite_genre = serializers.ListField(
+        child=serializers.CharField(),
         required=False, allow_null=True, allow_empty=True
     )
 
