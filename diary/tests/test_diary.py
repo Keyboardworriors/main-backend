@@ -49,8 +49,10 @@ class DiaryTests(APITestCase):
             "date": self.past_date_0.strftime("%Y-%m-%d"),
         }
         response = self.client.post(url, data=payload, format="json")
+        print("일기 생성 응답:", response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn("diary_id", response.data["data"])
+        print("일기 생성 테스트 통과")
 
     def test_create_diary_future(self):
         url = reverse("diary:diary-create")
@@ -62,6 +64,8 @@ class DiaryTests(APITestCase):
         }
         response = self.client.post(url, data=payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        print("미래 날짜 일기 작성 실패 :", response.status_code)
+        print("미래 날짜 일기 작성 테스트 통과")
 
     def test_create_duplicate_diary(self):
         url = reverse("diary:diary-create")
@@ -74,6 +78,8 @@ class DiaryTests(APITestCase):
         self.client.post(url, data=payload, format="json")
         response = self.client.post(url, data=payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        print("날짜 중복 일기 작성 실패 :", response.status_code)
+        print("날짜 중복 일기 작성 테스트 통과")
 
     def test_get_diary_detail(self):
         response = self.client.get(self.diary_url)
@@ -81,6 +87,7 @@ class DiaryTests(APITestCase):
         self.assertEqual(
             response.data["data"]["diary_id"], str(self.diary.diary_id)
         )
+        print("일기 상세 조회:", response.data)
 
     def test_get_diary_list(self):
         Diary.objects.create(
@@ -92,19 +99,23 @@ class DiaryTests(APITestCase):
         )
         url = reverse("diary:diary-main")
         response = self.client.get(url)
+        print("과거일기 생성 응답", response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data["message"],
             "Successfully displayed diary list with date.",
         )
         self.assertGreaterEqual(len(response.data["data"]), 2)
+        print("과거 일기 생성 테스트 통과")
 
     def test_search_diary(self):
         url = reverse("diary:diary-search")
-        payload = {"q": "test"}
+        payload = {"q": "날씨"}
         response = self.client.post(url, data=payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("data", response.data)
+        print("검색 결과:", response.data)
+        print("일기 검색 테스트 통과")
 
     def test_delete_diary(self):
         response = self.client.delete(self.diary_url)
@@ -112,6 +123,7 @@ class DiaryTests(APITestCase):
         self.assertFalse(
             Diary.objects.filter(diary_id=self.diary.diary_id).exists()
         )
+        print("일기 삭제 테스트 통과")
 
 
 class EmotionStatusTests(APITestCase):
@@ -150,6 +162,8 @@ class EmotionStatusTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["period"], "week")
         stats = response.data["emotion_stats"]
+        print("감정 키워드 통계:", stats)
         self.assertIn("기쁨", stats)
         self.assertIn("신남", stats)
         self.assertNotIn("우울", stats)
+        print("주간 감정 통계 테스트 통과")
