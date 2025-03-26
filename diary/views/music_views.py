@@ -36,8 +36,8 @@ def get_youtube_info(title, artist):
             snippet = video["snippet"]
             return {
                 "video_id": video_id,
-                "title": snippet["title"],
-                "artist": artist,  # AI가 준 아티스트로 그대로 사용
+                "title": title,
+                "artist": artist,  # AI가 준 아티스트, 제목 그대로 사용
                 "thumbnail": snippet["thumbnails"]["high"]["url"],
                 "embedUrl": f"https://www.youtube.com/watch?v={video_id}",
             }
