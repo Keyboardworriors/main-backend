@@ -209,4 +209,4 @@ CORS_ALLOWED_HEADERS = [
     "x-requested-with",
 ]
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = ['https://www.feelody.site']
+CSRF_TRUSTED_ORIGINS = ["https://www.feelody.site"]
