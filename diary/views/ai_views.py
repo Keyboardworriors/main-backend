@@ -1,14 +1,6 @@
-import google.generativeai as genai
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
+import logging
 
-from config import settings
-
-# Google API 키 설정 (본인의 키로 변경 필요)
-GOOGLE_API_KEY = settings.GOOGLE_API_KEY
-genai.configure(api_key=GOOGLE_API_KEY)
-
-import google.generativeai as genai
+import requests
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,44 +9,24 @@ from config import settings
 
 # Google API 키 설정 (본인의 키로 변경 필요)
 GOOGLE_API_KEY = settings.GOOGLE_API_KEY
+
+# Google Generative AI SDK 설정
+import google.generativeai as genai
+
 genai.configure(api_key=GOOGLE_API_KEY)
+
+# 로깅 설정
+logger = logging.getLogger(__name__)
 
 
 class GetMoods(APIView):
-    @swagger_auto_schema(
-        operation_description="사용자가 작성한 일기의 내용을 받아 감정을 분석하고, 분석된 감정을 반환합니다.",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                "content": openapi.Schema(
-                    type=openapi.TYPE_STRING,
-                    description="사용자가 작성한 일기 내용",
-                )
-            },
-        ),
-        responses={
-            200: openapi.Response(
-                description="성공적으로 감정을 분석한 후 반환",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "moods": openapi.Schema(
-                            type=openapi.TYPE_ARRAY,
-                            items=openapi.Items(type=openapi.TYPE_STRING),
-                            description="분석된 감정 목록",
-                        )
-                    },
-                ),
-            ),
-            400: openapi.Response(description="잘못된 입력 데이터"),
-            500: openapi.Response(description="내부 서버 오류"),
-        },
-    )
     def post(self, request):
+        logger.info("POST request received for GetMoods")
         content = request.data.get("content")
 
         # 입력값 검증 (일기 내용이 없거나, 문자열이 아닌 경우)
         if not content or not isinstance(content, str):
+            logger.warning("Invalid input data for GetMoods")
             return Response(
                 {"error": "Invalid input data."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -63,6 +35,7 @@ class GetMoods(APIView):
         try:
             emotions = self.get_emotions(content)
             if not emotions:
+                logger.error("Failed to analyze emotions in GetMoods")
                 return Response(
                     {"error": "Failed to analyze emotions."},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -71,9 +44,11 @@ class GetMoods(APIView):
             moods = [
                 mood.strip() for mood in emotions.split(",") if mood.strip()
             ]
+            logger.info(f"Successfully analyzed emotions: {moods}")
             return Response({"moods": moods}, status=status.HTTP_200_OK)
 
         except Exception as e:
+            logger.error(f"Unexpected error occurred in GetMoods: {str(e)}")
             return Response(
                 {"error": f"Unexpected error occurred: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -102,7 +77,7 @@ class GetMoods(APIView):
         "미움", "초조", "만족", "실망", "그리움", "죄책감", "충격", "안도", "긴장", "감사"
 
         출력 예시:
-        기쁨, 상쾌함
+        기쁨, 슬픔
         """
 
         try:
@@ -120,23 +95,24 @@ class GetMoods(APIView):
             return response.text.strip()
 
         except Exception as e:
+            logger.error(f"Error during emotion analysis: {str(e)}")
             raise RuntimeError(f"Error during emotion analysis: {str(e)}")
 
 
 def recommend_music(moods, favorite_genre):
     # 프롬프트 작성
     prompt = f"""
-        사용자의 감정은 다음과 같습니다: {', '.join(moods)}
-        사용자가 선호하는 음악 장르는 {favorite_genre}입니다.
+    사용자의 감정은 다음과 같습니다: {', '.join(moods)}
+    사용자가 선호하는 음악 장르는 {favorite_genre}입니다.
 
-        사용자의 감정과 선호 장르에 어울리는 음악을 3곡 추천해주세요.
-        각 음악의 제목과 가수만 알려주세요.
-        다음 형식으로 출력해주세요:
+    사용자의 감정과 선호 장르에 어울리는 음악을 3곡 추천해주세요.
+    각 음악의 제목과 가수만 알려주세요.
+    다음 형식으로 출력해주세요:
 
-        제목 - 가수
-        제목 - 가수
-        제목 - 가수
-        """
+    제목 - 가수
+    제목 - 가수
+    제목 - 가수
+    """
     try:
         model = genai.GenerativeModel("gemini-2.0-flash")
         response = model.generate_content(prompt)
@@ -161,9 +137,16 @@ def recommend_music(moods, favorite_genre):
                         {"title": title.strip(), "artist": artist.strip()}
                     )
                 except ValueError:
-                    raise ValueError(f"Format error: {line}")
+                    logger.warning(
+                        f"Format error in music recommendation: {line}"
+                    )
+                    continue
 
+        logger.info(
+            f"Music recommendations generated successfully: {recommendations}"
+        )
         return recommendations[:3]
 
     except Exception as e:
+        logger.error(f"Error during music recommendation: {str(e)}")
         raise RuntimeError(f"Error during music recommendation: {str(e)}")
