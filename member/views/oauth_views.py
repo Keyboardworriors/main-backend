@@ -107,11 +107,11 @@ class KakaoLoginCallback(APIView):
             return None
 
     def get_member_info_kakao(self, access_token):
-        get_access_token = access_token.get("access_token")
         url = "https://kapi.kakao.com/v2/user/me"
-        headers = {"Authorization": f"Bearer {get_access_token}"}
+        headers = {"Authorization": f"Bearer {access_token}"}
         try:
             response = requests.get(url, headers=headers)
+            print("Get MemberInfo data:", response)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
