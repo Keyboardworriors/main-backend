@@ -101,7 +101,10 @@ class FavoriteGenreSerializer(serializers.Serializer):
         child=serializers.CharField(), allow_empty=False
     )
     favorite_genre = serializers.ListField(
-        required=False, allow_null=True, allow_empty=True
+        child=serializers.CharField(),
+        required=False,
+        allow_null=True,
+        allow_empty=True,
     )
 
     def validate(self, attrs):

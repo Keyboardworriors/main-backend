@@ -2,10 +2,12 @@ from django.conf import settings
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from googleapiclient.discovery import build
-from rest_framework import status
+from rest_framework import permissions, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from diary.serializers import FavoriteGenreSerializer
 from diary.views.ai_views import recommend_music
 
 YOUTUBE_API_KEY = settings.YOUTUBE_API_KEY
@@ -33,9 +35,9 @@ def get_youtube_info(title, artist):
             video_id = video["id"]["videoId"]
             snippet = video["snippet"]
             return {
-                "videoId": video_id,
-                "title": snippet["title"],
-                "artist": artist,  # AI가 준 아티스트로 그대로 사용
+                "video_id": video_id,
+                "title": title,
+                "artist": artist,  # AI가 준 아티스트, 제목 그대로 사용
                 "thumbnail": snippet["thumbnails"]["high"]["url"],
                 "embedUrl": f"https://www.youtube.com/watch?v={video_id}",
             }
@@ -48,6 +50,8 @@ def get_youtube_info(title, artist):
 
 
 class MusicRecommendView(APIView):
+    permission_classes = [IsAuthenticated]
+
     @swagger_auto_schema(
         operation_description="추천된 음악 목록을 반환합니다. 감정과 선호 장르에 맞는 음악을 추천하고, YouTube 링크를 제공합니다.",
         request_body=openapi.Schema(
@@ -59,8 +63,9 @@ class MusicRecommendView(APIView):
                     description="사용자가 입력한 감정 목록",
                 ),
                 "favorite_genre": openapi.Schema(
-                    type=openapi.TYPE_STRING,
-                    description="사용자가 선호하는 음악 장르",
+                    type=openapi.TYPE_ARRAY,
+                    items=openapi.Items(type=openapi.TYPE_STRING),
+                    description="사용자가 선호하는 음악 장르 (optional)",
                 ),
             },
             required=["moods", "favorite_genre"],
@@ -79,7 +84,7 @@ class MusicRecommendView(APIView):
                             items=openapi.Items(
                                 type=openapi.TYPE_OBJECT,
                                 properties={
-                                    "videoId": openapi.Schema(
+                                    "video_id": openapi.Schema(
                                         type=openapi.TYPE_STRING,
                                         description="YouTube 비디오 ID",
                                     ),
@@ -112,34 +117,41 @@ class MusicRecommendView(APIView):
     # 추천된 음악 정보 리스트 반환
     def post(self, request):
         try:
-            moods = request.data.get("moods", [])
-            favorite_genre = request.data.get("favorite_genre")
+            serializer = FavoriteGenreSerializer(
+                data=request.data, context={"request": request}
+            )
+            serializer.is_valid(raise_exception=True)
 
-            # recommend_music 호출 예외 처리
+            moods = serializer.validated_data["moods"]
+            favorite_genre = serializer.validated_data["favorite_genre"]
+
+            # ai 기반 음악 추천
             recommendations = recommend_music(moods, favorite_genre)
-            if not recommendations:
-                return Response(
-                    {"error": "No music recommendations found."},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-
             results = []
             for rec in recommendations:
-                # get_youtube_info 호출 예외 처리
                 info = get_youtube_info(rec["title"], rec["artist"])
-                if info and "error" not in info:
+                if info:
                     results.append(info)
-                else:
-                    results.append(
-                        {
-                            "error": f"Failed to get YouTube info for {rec['title']}"
-                        }
-                    )
 
-            return Response(
-                {"message": "음악 추천 완료", "data": results},
-                status=status.HTTP_200_OK,
-            )
+                for rec in recommendations:
+                    # get_youtube_info 호출 예외 처리
+                    info = get_youtube_info(rec["title"], rec["artist"])
+                    if info and "error" not in info:
+                        results.append(info)
+                    else:
+                        results.append(
+                            {
+                                "error": f"Failed to get YouTube info for {rec['title']}"
+                            }
+                        )
+
+                return Response(
+                    {
+                        "message": "Music recommendation completed.",
+                        "data": results,
+                    },
+                    status=status.HTTP_200_OK,
+                )
 
         except Exception as e:
             return Response(

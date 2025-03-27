@@ -1,7 +1,6 @@
 import google.generativeai as genai
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.views import APIView, Response
 
 from config import settings
 
@@ -164,7 +163,7 @@ def recommend_music(moods, favorite_genre):
                 except ValueError:
                     raise ValueError(f"Format error: {line}")
 
-        return recommendations
+        return recommendations[:3]
 
     except Exception as e:
         raise RuntimeError(f"Error during music recommendation: {str(e)}")

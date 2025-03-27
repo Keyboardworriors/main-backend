@@ -128,13 +128,42 @@ class DiaryDetailView(APIView):
         )
 
 
+# swagger 문서를 위한 rec_music 스키마 정의
+rec_music_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    title="Recommended Music Info",
+    nullable=True,
+    properties={
+        "video_id": openapi.Schema(type=openapi.TYPE_STRING),
+        "title": openapi.Schema(type=openapi.TYPE_STRING),
+        "artist": openapi.Schema(type=openapi.TYPE_STRING),
+        "thumbnail": openapi.Schema(type=openapi.TYPE_STRING),
+        "embedUrl": openapi.Schema(type=openapi.TYPE_STRING),
+    },
+    description="Music info recommended by AI",
+)
+
+
 # 일기 작성
 class DiaryCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
         operation_description="사용자가 일기를 작성합니다.",
-        request_body=DiarySerializer,
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["diary_title", "content", "moods", "date"],
+            properties={
+                "diary_title": openapi.Schema(type=openapi.TYPE_STRING),
+                "content": openapi.Schema(type=openapi.TYPE_STRING),
+                "moods": openapi.Schema(
+                    type=openapi.TYPE_ARRAY,
+                    items=openapi.Items(type=openapi.TYPE_STRING),
+                ),
+                "date": openapi.Schema(type=openapi.TYPE_STRING, format="date"),
+                "rec_music": rec_music_schema,
+            },
+        ),
         responses={
             201: openapi.Response(
                 description="일기 작성 성공", schema=DiarySerializer()

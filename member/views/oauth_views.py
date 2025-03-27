@@ -85,6 +85,7 @@ class KakaoLoginCallback(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_access_kakao_token(self, code):
+        print(f"Received code: {code}")
         url = "https://kauth.kakao.com/oauth/token"
         data = {
             "grant_type": "authorization_code",
@@ -93,11 +94,16 @@ class KakaoLoginCallback(APIView):
             "redirect_uri": settings.KAKAO_REDIRECT_URL,
             "code": code,
         }
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded; charset=utf-8"
+        }
         try:
-            response = requests.post(url, data=data)
+            response = requests.post(url, headers=headers, data=data)
+            print(response.json())  # 응답 내용 확인
             response.raise_for_status()
             return response.json().get("access_token")
         except requests.RequestException as e:
+            print(f"Kakao token request error: {str(e)}")  # 오류 로그 추가
             return None
 
     def get_member_info_kakao(self, access_token):
@@ -191,6 +197,11 @@ class NaverLoginCallback(APIView):
                 member_info, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         social_account = self.get_or_create_social_account(member_info)
+        if social_account.get("error"):
+            return Response(
+                {"error": social_account.get("error")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         serializer = SocialAccountInfoSerializer(data=social_account)
         if serializer.is_valid():
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -227,13 +238,21 @@ class NaverLoginCallback(APIView):
         profile_image = member_info.get("profile_image")
         provider_user_id = str(member_info.get("id"))
 
-        social_account, _ = SocialAccount.objects.get_or_create(
-            provider="naver",
-            provider_user_id=provider_user_id,
-            defaults={
-                "email": email,
-                "profile_image": profile_image,
-            },
-        )
+        social_account = SocialAccount.objects.filter(
+            provider="naver", provider_user_id=provider_user_id
+        ).first()
 
-        return model_to_dict(social_account)
+        if not social_account:
+            if SocialAccount.objects.filter(email=email).exists():
+                return {"error": "An account with this email already exists."}
+
+            social_account = SocialAccount.objects.create(
+                provider="naver",
+                provider_user_id=provider_user_id,
+                email=email,
+                profile_image=profile_image,
+                is_active=False,
+            )
+
+        social_account_dict = model_to_dict(social_account)
+        return social_account_dict
