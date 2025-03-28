@@ -17,7 +17,6 @@ from diary.serializers import DiarySerializer
 # swagger 문서를 위한 rec_music 스키마 정의
 rec_music_schema = openapi.Schema(
     type=openapi.TYPE_OBJECT,
-    title="Recommended Music Info",
     nullable=True,
     properties={
         "video_id": openapi.Schema(type=openapi.TYPE_STRING),
@@ -26,7 +25,7 @@ rec_music_schema = openapi.Schema(
         "thumbnail": openapi.Schema(type=openapi.TYPE_STRING),
         "embedUrl": openapi.Schema(type=openapi.TYPE_STRING),
     },
-    description="Music info recommended by AI",
+    description="음악 정보",
 )
 
 
