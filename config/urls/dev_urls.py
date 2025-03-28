@@ -17,6 +17,12 @@ schema_view = get_schema_view(
         terms_of_service="https://www.google.com/policies/terms/",
         contact=openapi.Contact(email="contact@myapi.local"),
         license=openapi.License(name="BSD License"),
+        servers=[
+            openapi.Server(
+                url="https://www.feelody.site/api/",
+                description="Feelody API Server (HTTPS)",
+            )
+        ],
     ),
     public=True,
     permission_classes=(AllowAny,),
