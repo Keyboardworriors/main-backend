@@ -395,9 +395,6 @@ class MemberMypageView(APIView):
                             type=openapi.TYPE_ARRAY,
                             items=openapi.Schema(type=openapi.TYPE_STRING),
                         ),
-                        "social_account": openapi.Schema(
-                            type=openapi.TYPE_STRING
-                        ),  # 필요에 따라 더 구체적인 스키마 정의
                     },
                 ),
             ),
