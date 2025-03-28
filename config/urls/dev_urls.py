@@ -25,14 +25,14 @@ schema_view = get_schema_view(
 
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("api/admin/", admin.site.urls),
     path("api/members/", include("member.urls.api_urls")),
     path("api/oauth/", include("member.urls.oauth_urls")),
     path("api/diary/", include("diary.urls.diary_urls")),
     path("api/diary/recommendation-keyword/", include("diary.urls.ai_urls")),
     path("api/diary/music/", include("diary.urls.music_urls")),
     path(
-        "swagger/",
+        "api/swagger/",
         schema_view.with_ui("swagger", cache_timeout=0),
         name="swagger-ui",
     ),
@@ -41,7 +41,7 @@ if settings.DEBUG:
     import debug_toolbar
 
     urlpatterns += [
-        path("__debug__/", include("debug_toolbar.urls")),
+        path("api/__debug__/", include("debug_toolbar.urls")),
     ]
     urlpatterns.extend(
         static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
