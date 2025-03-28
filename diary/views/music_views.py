@@ -128,30 +128,26 @@ class MusicRecommendView(APIView):
             # ai 기반 음악 추천
             recommendations = recommend_music(moods, favorite_genre)
             results = []
+
             for rec in recommendations:
+                # get_youtube_info 호출 예외 처리
                 info = get_youtube_info(rec["title"], rec["artist"])
-                if info:
+                if info and "error" not in info:
                     results.append(info)
+                else:
+                    results.append(
+                        {
+                            "error": f"Failed to get YouTube info for {rec['title']}"
+                        }
+                    )
 
-                for rec in recommendations:
-                    # get_youtube_info 호출 예외 처리
-                    info = get_youtube_info(rec["title"], rec["artist"])
-                    if info and "error" not in info:
-                        results.append(info)
-                    else:
-                        results.append(
-                            {
-                                "error": f"Failed to get YouTube info for {rec['title']}"
-                            }
-                        )
-
-                return Response(
-                    {
-                        "message": "Music recommendation completed.",
-                        "data": results,
-                    },
-                    status=status.HTTP_200_OK,
-                )
+            return Response(
+                {
+                    "message": "Music recommendation completed.",
+                    "data": results,
+                },
+                status=status.HTTP_200_OK,
+            )
 
         except Exception as e:
             return Response(
