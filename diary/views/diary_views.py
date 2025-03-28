@@ -14,6 +14,21 @@ from rest_framework.views import APIView
 from diary.models import Diary
 from diary.serializers import DiarySerializer
 
+# swagger 문서를 위한 rec_music 스키마 정의
+rec_music_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    title="Recommended Music Info",
+    nullable=True,
+    properties={
+        "video_id": openapi.Schema(type=openapi.TYPE_STRING),
+        "title": openapi.Schema(type=openapi.TYPE_STRING),
+        "artist": openapi.Schema(type=openapi.TYPE_STRING),
+        "thumbnail": openapi.Schema(type=openapi.TYPE_STRING),
+        "embedUrl": openapi.Schema(type=openapi.TYPE_STRING),
+    },
+    description="Music info recommended by AI",
+)
+
 
 class DiaryListView(APIView):
     permission_classes = [IsAuthenticated]
@@ -81,7 +96,46 @@ class DiaryDetailView(APIView):
         operation_description="특정 일기를 조회합니다.",
         responses={
             200: openapi.Response(
-                description="일기 조회 성공", schema=DiarySerializer()
+                description="일기 조회 성공",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "message": openapi.Schema(type=openapi.TYPE_STRING),
+                        "data": openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    "diary_id": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                    "member": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                    "moods": openapi.Schema(
+                                        type=openapi.TYPE_ARRAY,
+                                        items=openapi.Items(
+                                            type=openapi.TYPE_STRING
+                                        ),
+                                    ),
+                                    "diary_title": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                    "content": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                    "rec_music": rec_music_schema,
+                                    "date": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                    "created_at": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                },
+                            ),
+                        ),
+                    },
+                ),
             ),
             404: openapi.Response(description="일기를 찾을 수 없음"),
         },
@@ -128,22 +182,6 @@ class DiaryDetailView(APIView):
         )
 
 
-# swagger 문서를 위한 rec_music 스키마 정의
-rec_music_schema = openapi.Schema(
-    type=openapi.TYPE_OBJECT,
-    title="Recommended Music Info",
-    nullable=True,
-    properties={
-        "video_id": openapi.Schema(type=openapi.TYPE_STRING),
-        "title": openapi.Schema(type=openapi.TYPE_STRING),
-        "artist": openapi.Schema(type=openapi.TYPE_STRING),
-        "thumbnail": openapi.Schema(type=openapi.TYPE_STRING),
-        "embedUrl": openapi.Schema(type=openapi.TYPE_STRING),
-    },
-    description="Music info recommended by AI",
-)
-
-
 # 일기 작성
 class DiaryCreateView(APIView):
     permission_classes = [IsAuthenticated]
@@ -166,7 +204,46 @@ class DiaryCreateView(APIView):
         ),
         responses={
             201: openapi.Response(
-                description="일기 작성 성공", schema=DiarySerializer()
+                description="일기 작성 성공",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "message": openapi.Schema(type=openapi.TYPE_STRING),
+                        "data": openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    "diary_id": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                    "member": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                    "moods": openapi.Schema(
+                                        type=openapi.TYPE_ARRAY,
+                                        items=openapi.Items(
+                                            type=openapi.TYPE_STRING
+                                        ),
+                                    ),
+                                    "diary_title": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                    "content": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                    "rec_music": rec_music_schema,
+                                    "date": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                    "created_at": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                },
+                            ),
+                        ),
+                    },
+                ),
             ),
             400: openapi.Response(description="잘못된 요청 데이터"),
         },
@@ -210,7 +287,45 @@ class DiarySearchView(APIView):
         responses={
             200: openapi.Response(
                 description="검색된 일기 목록",
-                schema=DiarySerializer(many=True),
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "message": openapi.Schema(type=openapi.TYPE_STRING),
+                        "data": openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    "diary_id": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                    "member": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                    "moods": openapi.Schema(
+                                        type=openapi.TYPE_ARRAY,
+                                        items=openapi.Items(
+                                            type=openapi.TYPE_STRING
+                                        ),
+                                    ),
+                                    "diary_title": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                    "content": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                    "rec_music": rec_music_schema,
+                                    "date": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                    "created_at": openapi.Schema(
+                                        type=openapi.TYPE_STRING
+                                    ),
+                                },
+                            ),
+                        ),
+                    },
+                ),
             ),
             400: openapi.Response(description="검색어가 없습니다."),
             404: openapi.Response(description="검색 결과 없음"),

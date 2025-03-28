@@ -1,13 +1,6 @@
 from django.contrib import admin
 
-from .models import Diary, Music
-
-
-@admin.register(Music)
-class MusicAdmin(admin.ModelAdmin):
-    list_display = ("music_id", "title", "artist", "video_id", "thumbnail")
-    search_fields = ("title", "artist", "video_id")
-    readonly_fields = ("music_id",)
+from .models import Diary
 
 
 @admin.register(Diary)
