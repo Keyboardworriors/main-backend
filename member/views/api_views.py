@@ -376,9 +376,6 @@ class MemberMypageView(APIView):
                     items=openapi.Schema(type=openapi.TYPE_STRING),
                     nullable=True,
                 ),
-                "social_account": openapi.Schema(
-                    type=openapi.TYPE_STRING, nullable=True
-                ),  # 필요에 따라 더 구체적인 스키마 정의
             },
         ),
         responses={
@@ -451,10 +448,39 @@ class MemberMypageView(APIView):
 class MemberProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
+    member_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "introduce": openapi.Schema(
+                type=openapi.TYPE_STRING, description="자기소개"
+            ),
+            "nickname": openapi.Schema(
+                type=openapi.TYPE_STRING, description="닉네임"
+            ),
+            "favorite_genre": openapi.Schema(
+                type=openapi.TYPE_STRING, description="선호 장르"
+            ),
+        },
+        description="회원 정보",
+    )
+
+    profile_serializer_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "profile_image": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                nullable=True,
+                description="프로필 이미지 URL",
+            ),
+            "member": member_schema,
+        },
+        description="회원 프로필 정보",
+    )
+
     @swagger_auto_schema(
         responses={
             status.HTTP_200_OK: openapi.Response(
-                description="회원 프로필 정보", schema=ProfileSerializer
+                description="회원 프로필 정보", schema=profile_serializer_schema
             )
         }
     )
