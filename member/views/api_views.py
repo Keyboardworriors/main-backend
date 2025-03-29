@@ -17,16 +17,8 @@ from member.serializer import (
     SocialAccountSerializer,
 )
 
-User = get_user_model()
-
 
 class CreateMemberInfo(APIView):
-    @swagger_auto_schema(
-        responses={status.HTTP_200_OK: openapi.Response("성공")}
-    )
-    def get(self, request):
-        return Response(status=status.HTTP_200_OK)
-
     @swagger_auto_schema(
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
@@ -331,9 +323,10 @@ class MemberMypageView(APIView):
                             type=openapi.TYPE_ARRAY,
                             items=openapi.Schema(type=openapi.TYPE_STRING),
                         ),
-                        "social_account": openapi.Schema(
+                        "profile_image": openapi.Schema(
                             type=openapi.TYPE_STRING
-                        ),  # 필요에 따라 더 구체적인 스키마 정의
+                        ),
+                        "email": openapi.Schema(type=openapi.TYPE_STRING),
                     },
                 ),
             ),
@@ -359,7 +352,14 @@ class MemberMypageView(APIView):
             )
 
         serializer = MemberInfoSerializer(member_info)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        data = {
+            "email": member_info.social_account.email,
+            "profile_image": member_info.social_account.profile_image,
+            "nickname": serializer.data["nickname"],
+            "introduce": serializer.data.get("introduce"),
+            "favorite_genre": serializer.data.get("favorite_genre"),
+        }
+        return Response(data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         request_body=openapi.Schema(
