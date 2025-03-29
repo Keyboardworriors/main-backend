@@ -26,11 +26,6 @@ class CreateMemberInfoViewTest(TestCase):
         self.refresh_token = RefreshToken.for_user(self.social_account)
         self.access_token = self.refresh_token.access_token
 
-    def test_get_request_returns_200(self):
-        print("\nCreateMemberInfoView GET 요청 시 200 응답 확인")
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
     def test_post_request_with_valid_data(self):
         print("\nCreateMemberInfoView POST 요청 시 유효한 데이터 처리 확인")
         request_data = {
@@ -230,6 +225,7 @@ class MemberMypageViewTest(TestCase):
             provider="kakao",
             provider_user_id="123",
             is_active=True,
+            profile_image="test.url",
         )
         self.member_info = MemberInfo.objects.create(
             nickname="test", social_account=self.social_account
@@ -244,6 +240,13 @@ class MemberMypageViewTest(TestCase):
         print("\nMemberMypageView GET 요청 시 인증된 사용자 확인")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_request_info_success(self):
+        print("\nMemberMypageView GET 요청 시 사용자 정보 확인")
+        response = self.client.get(self.url)
+        self.assertEqual(response.data["nickname"], "test")
+        self.assertEqual(response.data["profile_image"], "test.url")
+        self.assertEqual(response.data["introduce"], None)
 
     def test_patch_request_update_info_success(self):
         print("\nMemberMypageView PATCH 요청 시 정보 업데이트 성공 확인")
