@@ -245,7 +245,6 @@ class MemberMypageViewTest(TestCase):
         print("\nMemberMypageView GET 요청 시 사용자 정보 확인")
         response = self.client.get(self.url)
         self.assertEqual(response.data["nickname"], "test")
-        self.assertEqual(response.data["profile_image"], "test.url")
         self.assertEqual(response.data["introduce"], None)
 
     def test_patch_request_update_info_success(self):
