@@ -197,7 +197,7 @@ SWAGGER_SETTINGS = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://www.feelody.site",
-    "https://d1bzbea6kgi9b4.cloudfront.net",
+    "https://d1bzbea6kgi9b4.cloudfront.net/",
 ]
 CORS_ALLOWED_HEADERS = [
     "accept",
