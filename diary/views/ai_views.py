@@ -73,6 +73,13 @@ class GetMoods(APIView):
             ]
             return Response({"moods": moods}, status=status.HTTP_200_OK)
 
+        except ValueError as e:
+            # 감정 키워드를 추출할 수 없을 경우 에러 처리
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         except Exception as e:
             return Response(
                 {"error": f"Unexpected error occurred: {str(e)}"},
@@ -119,7 +126,14 @@ class GetMoods(APIView):
             ):
                 raise RuntimeError("No valid response received from the model.")
 
-            return response.text.strip()
+            emotions = response.text.strip()
+
+            if "감정 키워드를 추출할 수 없습니다." in emotions:
+                raise ValueError(
+                    "Emotion keywords could not be extracted from the diary."
+                )
+
+            return emotions
 
         except Exception as e:
             raise RuntimeError(f"Error during emotion analysis: {str(e)}")
