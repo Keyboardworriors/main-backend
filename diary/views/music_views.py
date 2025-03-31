@@ -77,6 +77,7 @@ class MusicRecommendView(APIView):
             )
 
             results = []
+
             for rec in recommendations:
                 logger.debug(f"Processing recommendation: {rec['title']}")
                 info = get_youtube_info(rec["title"], rec["artist"])

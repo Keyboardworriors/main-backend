@@ -170,7 +170,12 @@ class MemberMypageView(APIView):
             )
 
         serializer = MemberInfoSerializer(member_info)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        data = {
+            "nickname": serializer.data["nickname"],
+            "introduce": serializer.data.get("introduce"),
+            "favorite_genre": serializer.data.get("favorite_genre"),
+        }
+        return Response(data, status=status.HTTP_200_OK)
 
     def patch(self, request):
         logger.info("PATCH request received for MemberMypageView")

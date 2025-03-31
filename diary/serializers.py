@@ -2,7 +2,7 @@ import datetime
 
 from rest_framework import serializers
 
-from diary.models import Diary, Music
+from diary.models import Diary
 from member.models import MemberInfo
 
 
@@ -81,19 +81,6 @@ class DiarySerializer(serializers.ModelSerializer):
                 "Diary content must be at least 20 characters long."
             )
         return value
-
-
-class MusicSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Music
-        fields = ["video_id", "title", "artist", "thumbnail", "embedUrl"]
-        read_only_fields = [
-            "video_id",
-            "title",
-            "artist",
-            "thumbnail",
-            "embedUrl",
-        ]
 
 
 class FavoriteGenreSerializer(serializers.Serializer):

@@ -196,6 +196,7 @@ SWAGGER_SETTINGS = {
 }
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "https://www.feelody.site",
 ]
 CORS_ALLOWED_HEADERS = [
     "accept",
@@ -209,3 +210,4 @@ CORS_ALLOWED_HEADERS = [
     "x-requested-with",
 ]
 CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = ["https://www.feelody.site"]
