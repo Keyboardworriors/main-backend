@@ -323,10 +323,6 @@ class MemberMypageView(APIView):
                             type=openapi.TYPE_ARRAY,
                             items=openapi.Schema(type=openapi.TYPE_STRING),
                         ),
-                        "profile_image": openapi.Schema(
-                            type=openapi.TYPE_STRING
-                        ),
-                        "email": openapi.Schema(type=openapi.TYPE_STRING),
                     },
                 ),
             ),
@@ -353,8 +349,6 @@ class MemberMypageView(APIView):
 
         serializer = MemberInfoSerializer(member_info)
         data = {
-            "email": member_info.social_account.email,
-            "profile_image": member_info.social_account.profile_image,
             "nickname": serializer.data["nickname"],
             "introduce": serializer.data.get("introduce"),
             "favorite_genre": serializer.data.get("favorite_genre"),
