@@ -72,6 +72,12 @@ class DiarySerializer(serializers.ModelSerializer):
 
         return data
 
+    def validate_diary_title(self, diary_title):
+        if len(diary_title) > 20:
+            raise serializers.ValidationError("diary title must be at most 20 characters.")
+        return diary_title
+
+
     # content (일기내용) 필드의 길이 제한 검증 추가
     def validate_content(self, value):
         if not value or len(value.strip()) == 0:
