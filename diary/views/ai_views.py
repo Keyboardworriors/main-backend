@@ -71,6 +71,9 @@ class GetMoods(APIView):
             moods = [
                 mood.strip() for mood in emotions.split(",") if mood.strip()
             ]
+            if len(moods) < 2:
+                raise RuntimeError("At least two emotions must be selected.")
+
             return Response({"moods": moods}, status=status.HTTP_200_OK)
 
         except ValueError as e:
@@ -147,11 +150,16 @@ def recommend_music(moods, favorite_genre):
 
         사용자의 감정과 선호 장르에 어울리는 음악을 3곡 추천해주세요.
         각 음악의 제목과 가수만 알려주세요.
-        다음 형식으로 출력해주세요:
-
-        제목 - 가수
-        제목 - 가수
-        제목 - 가수
+        다음과 같은 형식으로만 출력해주세요:
+        <제목> - <가수 이름>
+        
+        예시:
+        Spring Day - BTS
+        Bad Guy - Billie Eilish
+        좋은 날 - 아이유
+        
+        '제목 - 가수' 같은 설명 문구는 절대 포함하지 말고, 실제 음악 제목과 가수 이름만 출력해주세요.
+        목록 형태로 총 3곡만 출력해주세요.
         """
     try:
         model = genai.GenerativeModel("gemini-2.0-flash")
