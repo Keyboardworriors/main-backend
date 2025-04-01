@@ -1,8 +1,10 @@
-import google.generativeai as genai
 import logging
+
+import google.generativeai as genai
+import requests
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-import requests
+
 from config import settings
 
 # Google API 키 설정 (본인의 키로 변경 필요)
