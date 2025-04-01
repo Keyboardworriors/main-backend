@@ -20,7 +20,9 @@ class DiaryListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        logger.info("Retrieving diary list for user %s", request.user.id)
+        logger.info(
+            "Retrieving diary list for user %s", request.user.social_account_id
+        )
         all_diary = Diary.objects.filter(
             member=request.user.social_account_id
         ).values("diary_id", "date")
@@ -85,7 +87,9 @@ class DiaryCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        logger.info("Creating new diary for user %s", request.user.id)
+        logger.info(
+            "Creating new diary for user %s", request.user.social_account_id
+        )
         serializer = DiarySerializer(
             data=request.data, context={"request": request}
         )
@@ -113,7 +117,9 @@ class DiarySearchView(APIView):
     def post(self, request):
         q = request.data.get("q", "").strip()
         logger.info(
-            "Searching diaries for user %s with query: %s", request.user.id, q
+            "Searching diaries for user %s with query: %s",
+            request.user.social_account_id,
+            q,
         )
         if not q:
             logger.warning("Empty search query")
@@ -154,7 +160,7 @@ class EmotionStatusView(APIView):
         today = now().date()
         logger.info(
             "Retrieving emotion status for user %s, period: %s",
-            request.user.id,
+            request.user.social_account_id,
             period,
         )
 

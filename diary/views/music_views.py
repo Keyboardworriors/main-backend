@@ -57,7 +57,9 @@ class MusicRecommendView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        logger.info(f"Music recommendation request from user {request.user.id}")
+        logger.info(
+            f"Music recommendation request from user {request.user.social_account_id}"
+        )
         try:
             serializer = FavoriteGenreSerializer(
                 data=request.data, context={"request": request}
