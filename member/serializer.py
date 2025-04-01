@@ -36,7 +36,7 @@ class MemberInfoSerializer(serializers.ModelSerializer):
         ):
             raise serializers.ValidationError("This nickname is already taken.")
 
-        if len(value.encode("utf-8")) > 15:
+        if len(value.encode("utf-8")) > 45:
             raise serializers.ValidationError(
                 "Nickname can be up to 15 characters (Korean)."
             )
