@@ -2,11 +2,6 @@ import os
 
 from .base import *
 
-dotenv_path = BASE_DIR / "prod.env"
-if dotenv_path.exists():
-    load_dotenv(dotenv_path)
-else:
-    print(f"파일이 존재하지 않음: {dotenv_path}")
 DEBUG = False
 ALLOWED_HOSTS = ["www.feelody.site", "feelody.site"]  # 배포 시 실제 도메인
 
@@ -20,18 +15,6 @@ CSRF_COOKIE_SECURE = True
 SECURE_HSTS_SECONDS = 31536000  # 1년 동안 HTTPS 강제
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
-
-
-# PostgreSQL 배포용 설정
-DATABASES["default"].update(
-    {
-        "NAME": os.getenv("DB_NAME", "prod_db"),
-        "USER": os.getenv("DB_USER", "prod_user"),
-        "PASSWORD": os.getenv("DB_PASSWORD", "prod_password"),
-        "HOST": os.getenv("DB_HOST", "prod_db_host"),
-        "PORT": os.getenv("DB_PORT", "5432"),
-    }
-)
 
 
 INSTALLED_APPS = [
