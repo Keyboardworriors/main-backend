@@ -16,7 +16,7 @@ __pycache__/
 # 환경 설정 파일
 .env
 *.env
-.prod.env
+prod.env
 
 # 로그 및 빌드 파일
 *.log

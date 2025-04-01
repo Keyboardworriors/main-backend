@@ -38,9 +38,9 @@ else:
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
+SECRET_KEY = secrets[
     "SECRET_KEY"
-)  # or secrets.get("SECRET_KEY","django-insecure-px57&b8-(+ujqkq^$v$+85zzwcib7cm)7&qriv@-#2d6k*&j_z")
+]  # or secrets.get("SECRET_KEY","django-insecure-px57&b8-(+ujqkq^$v$+85zzwcib7cm)7&qriv@-#2d6k*&j_z")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "drf_yasg",
+    "corsheaders",
     # django apps
     "django.contrib.admin",
     "django.contrib.auth",
@@ -68,6 +69,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -136,7 +139,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Seoul"
 
 USE_I18N = True
 
@@ -146,24 +149,25 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AUTH_USER_MODEL = "member.Member"
+AUTH_USER_MODEL = "member.SocialAccount"
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=2),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "SIGNING_KEY": SECRET_KEY,
     "BLACKLIST_AFTER_ROTATION": True,
     "ROTATE_REFRESH_TOKENS": True,
     "ALGORITHM": "HS256",
-    "USER_ID_FIELD": "member_id",
-    "USER_ID_CLAIM": "member_id",
+    "USER_ID_FIELD": "social_account_id",
+    "USER_ID_CLAIM": "social_account_id",
 }
 
 NAVER_CLIENT_ID = secrets["naver"]["client_id"]
@@ -175,5 +179,36 @@ KAKAO_CLIENT_ID = secrets["kakao"]["client_id"]
 KAKAO_SECRET = secrets["kakao"]["secret"]
 KAKAO_REDIRECT_URL = secrets["kakao"]["redirect_url"]
 
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+YOUTUBE_API_KEY = secrets["youtube"]["api_key"]
 GOOGLE_API_KEY = secrets["google1"]["api_key"]
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
+
+APPEND_SLASH = True
+
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"}
+    }
+}
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "https://www.feelody.site",
+    "https://d1bzbea6kgi9b4.cloudfront.net",
+]
+CORS_ALLOWED_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = ["https://www.feelody.site"]
