@@ -1,6 +1,15 @@
+import google.generativeai as genai
 import logging
-
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 import requests
+from config import settings
+
+# Google API 키 설정 (본인의 키로 변경 필요)
+GOOGLE_API_KEY = settings.GOOGLE_API_KEY
+genai.configure(api_key=GOOGLE_API_KEY)
+
+import google.generativeai as genai
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,10 +18,6 @@ from config import settings
 
 # Google API 키 설정 (본인의 키로 변경 필요)
 GOOGLE_API_KEY = settings.GOOGLE_API_KEY
-
-# Google Generative AI SDK 설정
-import google.generativeai as genai
-
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # 로깅 설정
@@ -45,7 +50,17 @@ class GetMoods(APIView):
                 mood.strip() for mood in emotions.split(",") if mood.strip()
             ]
             logger.info(f"Successfully analyzed emotions: {moods}")
+            if len(moods) < 2:
+                raise RuntimeError("At least two emotions must be selected.")
+
             return Response({"moods": moods}, status=status.HTTP_200_OK)
+
+        except ValueError as e:
+            # 감정 키워드를 추출할 수 없을 경우 에러 처리
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         except Exception as e:
             logger.error(f"Unexpected error occurred in GetMoods: {str(e)}")
@@ -77,7 +92,9 @@ class GetMoods(APIView):
         "미움", "초조", "만족", "실망", "그리움", "죄책감", "충격", "안도", "긴장", "감사"
 
         출력 예시:
-        기쁨, 슬픔
+        기쁨, 상쾌함
+        
+        만약 일기의 내용이 비정상적이라면 감정 키워드를 추출할 수 없습니다.를 출력하세요.
         """
 
         try:
@@ -92,7 +109,14 @@ class GetMoods(APIView):
             ):
                 raise RuntimeError("No valid response received from the model.")
 
-            return response.text.strip()
+            emotions = response.text.strip()
+
+            if "감정 키워드를 추출할 수 없습니다." in emotions:
+                raise ValueError(
+                    "Emotion keywords could not be extracted from the diary."
+                )
+
+            return emotions
 
         except Exception as e:
             logger.error(f"Error during emotion analysis: {str(e)}")
@@ -105,14 +129,24 @@ def recommend_music(moods, favorite_genre):
     사용자의 감정은 다음과 같습니다: {', '.join(moods)}
     사용자가 선호하는 음악 장르는 {favorite_genre}입니다.
 
-    사용자의 감정과 선호 장르에 어울리는 음악을 3곡 추천해주세요.
-    각 음악의 제목과 가수만 알려주세요.
-    다음 형식으로 출력해주세요:
-
-    제목 - 가수
-    제목 - 가수
-    제목 - 가수
-    """
+        아래의 조건을 고려하여 사용자에게 음악을 3곡 추천해주세요 
+        사용자의 감정과 선호 장르에 어울릴것
+        국내외 대중적인 음악 위주
+        감성적인 분위기 또는 감정에 잘 맞는 느낌
+        유명한 곡만 추천하지 말고 몰랐던 좋은곡도 포함
+        
+        각 음악의 제목과 가수만 알려주세요.
+        다음과 같은 형식으로만 출력해주세요:
+        <제목> - <가수 이름>
+        
+        예시:
+        Spring Day - BTS
+        Bad Guy - Billie Eilish
+        좋은 날 - 아이유
+        
+        '제목 - 가수' 같은 설명 문구는 절대 포함하지 말고, 실제 음악 제목과 가수 이름만 출력해주세요.
+        목록 형태로 총 3곡만 출력해주세요.
+        """
     try:
         model = genai.GenerativeModel("gemini-2.0-flash")
         response = model.generate_content(prompt)
@@ -140,7 +174,7 @@ def recommend_music(moods, favorite_genre):
                     logger.warning(
                         f"Format error in music recommendation: {line}"
                     )
-                    continue
+                    raise ValueError(f"Format error: {line}")
 
         logger.info(
             f"Music recommendations generated successfully: {recommendations}"

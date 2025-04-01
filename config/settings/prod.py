@@ -2,17 +2,25 @@ import os
 
 from .base import *
 
+dotenv_path = BASE_DIR / "prod.env"
+if dotenv_path.exists():
+    load_dotenv(dotenv_path)
+else:
+    print(f"파일이 존재하지 않음: {dotenv_path}")
 DEBUG = False
-ALLOWED_HOSTS = ["feelody.site"]  # 배포 시 실제 도메인
+ALLOWED_HOSTS = ["www.feelody.site", "feelody.site"]  # 배포 시 실제 도메인
 
 # 보안 강화
-SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-DEBUG = False
+# HSTS 설정 (HTTPS 강제)
+SECURE_HSTS_SECONDS = 31536000  # 1년 동안 HTTPS 강제
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
 
 # PostgreSQL 배포용 설정
 DATABASES["default"].update(
